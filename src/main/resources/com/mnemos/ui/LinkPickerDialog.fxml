@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="com.mnemos.ui.LinkPickerController"
+      spacing="10" prefWidth="350" prefHeight="400"
+      style="-fx-padding: 15; -fx-background-color: #1e1e1e; -fx-background-radius: 8; -fx-border-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0, 0, 2);">
+    
+    <Label text="🔗 Link Item" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #ffffff;"/>
+    
+    <TextField fx:id="searchField" promptText="Search..." 
+               style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-prompt-text-fill: #666; -fx-background-radius: 5; -fx-padding: 8;"/>
+    
+    <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE" styleClass="link-picker-tabs">
+        <Tab text="📋 Tasks">
+            <ListView fx:id="tasksListView" styleClass="link-picker-list"/>
+        </Tab>
+        <Tab text="📝 Notes">
+            <ListView fx:id="notesListView" styleClass="link-picker-list"/>
+        </Tab>
+        <Tab text="📎 Files">
+            <ListView fx:id="filesListView" styleClass="link-picker-list"/>
+        </Tab>
+    </TabPane>
+    
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button text="Cancel" onAction="#handleCancel" 
+                style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: #999; -fx-cursor: hand; -fx-background-radius: 5; -fx-padding: 8 16;"/>
+        <Button text="Link" onAction="#handleLink" 
+                style="-fx-background-color: #6c8cff; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5; -fx-padding: 8 16;"/>
+    </HBox>
+</VBox>
+
+

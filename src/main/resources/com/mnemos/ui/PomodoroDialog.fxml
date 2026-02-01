@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="com.mnemos.ui.PomodoroController"
+      alignment="CENTER" spacing="20" style="-fx-padding: 30; -fx-background-color: #1a1a1a; -fx-background-radius: 10;">
+   <children>
+      <!-- Timer Display -->
+      <VBox alignment="CENTER" spacing="5">
+         <Label fx:id="stateLabel" text="Ready to Focus" style="-fx-text-fill: #888; -fx-font-size: 14px;"/>
+         <Label fx:id="timerLabel" text="25:00" style="-fx-text-fill: #e0e0e0; -fx-font-size: 48px; -fx-font-weight: bold;"/>
+      </VBox>
+      
+      <!-- Progress Indicator -->
+      <javafx.scene.control.ProgressBar fx:id="progressBar" prefWidth="250" prefHeight="8" 
+                                        style="-fx-accent: #6c8cff;"/>
+      
+      <!-- Control Buttons -->
+      <HBox spacing="10" alignment="CENTER">
+         <Button fx:id="startButton" text="Start Work" onAction="#handleStart" 
+                 styleClass="action-btn" style="-fx-min-width: 100; -fx-font-size: 12px;"/>
+         <Button fx:id="pauseButton" text="Pause" onAction="#handlePause" 
+                 styleClass="icon-btn" style="-fx-min-width: 80; -fx-font-size: 12px;" disable="true"/>
+         <Button fx:id="stopButton" text="Stop" onAction="#handleStop" 
+                 styleClass="icon-btn" style="-fx-min-width: 80; -fx-font-size: 12px;" disable="true"/>
+      </HBox>
+      
+      <!-- Pomodoro Count -->
+      <Label fx:id="pomodoroCountLabel" text="🍅 0 Pomodoros completed" 
+             style="-fx-text-fill: #888; -fx-font-size: 12px;"/>
+   </children>
+</VBox>

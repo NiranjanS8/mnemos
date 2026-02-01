@@ -1,0 +1,10 @@
+Initializing Database...
+Database Initialized.
+Creating Note...
+Note Saved. ID: 3
+Reading Notes...
+Found 3 notes.
+ - Debug Note: Content
+ - Debug Note: Content
+ - Debug Note: Content
+Done.

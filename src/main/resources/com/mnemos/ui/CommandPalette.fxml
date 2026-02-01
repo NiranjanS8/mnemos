@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
+
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+           fx:controller="com.mnemos.ui.CommandPaletteController"
+           styleClass="command-palette-overlay"
+           onMouseClicked="#handleOverlayClick">
+    
+    <VBox styleClass="command-palette" maxWidth="600" maxHeight="400" onMouseClicked="#consumeClick">
+        <TextField fx:id="searchField" promptText="Type a command..." styleClass="command-search"/>
+        <ListView fx:id="commandListView" VBox.vgrow="ALWAYS" styleClass="command-list"/>
+    </VBox>
+    
+</StackPane>

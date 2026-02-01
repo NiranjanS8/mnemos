@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+
+<AnchorPane id="rootPane" fx:id="rootPane" prefHeight="500.0" prefWidth="350.0" styleClass="root-pane" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mnemos.ui.MainController">
+   <children>
+      <VBox prefHeight="500.0" prefWidth="350.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <!-- Title Bar -->
+            <HBox prefHeight="55.0" prefWidth="350.0" styleClass="title-bar" style="-fx-cursor: hand;" alignment="CENTER_LEFT">
+               <padding>
+                  <Insets left="15.0" right="10.0" />
+               </padding>
+               <children>
+                  <!-- App Icon -->
+                  <Label text="📝" style="-fx-font-size: 22px; -fx-padding: 0 10 0 0;"/>
+                  <Label styleClass="app-title" text="Mnemos" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                  <javafx.scene.layout.Region HBox.hgrow="ALWAYS" />
+                  <!-- Window Controls -->
+                  <javafx.scene.control.Button text="−" onAction="#handleMinimize" styleClass="win-btn,win-btn-minimize" minWidth="40" maxWidth="40" minHeight="40" maxHeight="40" style="-fx-font-size: 18px;"/>
+                  <javafx.scene.control.Button text="✕" onAction="#handleClose" styleClass="win-btn,win-btn-close" minWidth="40" maxWidth="40" minHeight="40" maxHeight="40" style="-fx-font-size: 16px;"/>
+               </children>
+            </HBox>
+            
+            <!-- Main Content Area with Tabs -->
+            <TabPane fx:id="mainTabPane" prefHeight="200.0" prefWidth="200.0" side="TOP" styleClass="main-tabs" tabClosingPolicy="UNAVAILABLE" tabMaxWidth="Infinity" VBox.vgrow="ALWAYS">
+              <tabs>
+                <Tab text="Notes" closable="false">
+                  <content>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" fx:id="notesContainer" />
+                  </content>
+                </Tab>
+                <Tab text="Tasks" closable="false">
+                  <content>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" fx:id="tasksContainer" />
+                  </content>
+                </Tab>
+                <Tab text="Files" closable="false">
+                  <content>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" fx:id="filesContainer" />
+                  </content>
+                </Tab>
+              </tabs>
+            </TabPane>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>
