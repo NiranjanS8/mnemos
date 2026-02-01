@@ -12,12 +12,22 @@ public class Task {
         PENDING, COMPLETED
     }
 
+    public enum RecurrenceType {
+        NONE, DAILY, WEEKLY, CUSTOM
+    }
+
     private Long id;
     private String title;
     private Priority priority;
     private LocalDate dueDate;
     private Status status;
     private int pomodoroCount;
+
+    // New fields
+    private RecurrenceType recurrenceType = RecurrenceType.NONE;
+    private int recurrenceInterval = 0; // e.g. every 2 days
+    private LocalDate recurrenceEndDate;
+    private String reminderDate; // Stored as ISO string for simplicity
 
     public Task(Long id, String title, Priority priority, LocalDate dueDate, Status status, int pomodoroCount) {
         this.id = id;
@@ -82,5 +92,37 @@ public class Task {
 
     public void setPomodoroCount(int pomodoroCount) {
         this.pomodoroCount = pomodoroCount;
+    }
+
+    public RecurrenceType getRecurrenceType() {
+        return recurrenceType;
+    }
+
+    public void setRecurrenceType(RecurrenceType recurrenceType) {
+        this.recurrenceType = recurrenceType;
+    }
+
+    public int getRecurrenceInterval() {
+        return recurrenceInterval;
+    }
+
+    public void setRecurrenceInterval(int recurrenceInterval) {
+        this.recurrenceInterval = recurrenceInterval;
+    }
+
+    public LocalDate getRecurrenceEndDate() {
+        return recurrenceEndDate;
+    }
+
+    public void setRecurrenceEndDate(LocalDate recurrenceEndDate) {
+        this.recurrenceEndDate = recurrenceEndDate;
+    }
+
+    public String getReminderDate() {
+        return reminderDate;
+    }
+
+    public void setReminderDate(String reminderDate) {
+        this.reminderDate = reminderDate;
     }
 }

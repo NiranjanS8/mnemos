@@ -99,7 +99,6 @@ public class App extends Application {
 
         // Use TRANSPARENT for completely frameless with rounded corners support
         stage.initStyle(StageStyle.TRANSPARENT);
-        stage.setAlwaysOnTop(true);
         stage.setScene(scene);
 
         // Setup global Ctrl+Space hotkey for command palette

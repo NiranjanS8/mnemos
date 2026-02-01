@@ -36,6 +36,8 @@ public class TasksController {
     @FXML
     private ComboBox<Priority> priorityCombo;
     @FXML
+    private ComboBox<Task.RecurrenceType> recurrenceCombo;
+    @FXML
     private ListView<Task> tasksListView;
 
     @FXML
@@ -50,13 +52,16 @@ public class TasksController {
     private final LinkService linkService = new LinkService();
     private final ObservableList<Task> tasks = FXCollections.observableArrayList();
     private final ObservableList<LinkedItem> linkedItems = FXCollections.observableArrayList();
-    private Status currentFilter = null; // null = ALL
+    private Status currentFilter = Status.PENDING; // Default to Pending
     private Task selectedTask = null;
 
     @FXML
     public void initialize() {
         priorityCombo.getItems().setAll(Priority.values());
         priorityCombo.getSelectionModel().select(Priority.MEDIUM);
+
+        recurrenceCombo.getItems().setAll(Task.RecurrenceType.values());
+        recurrenceCombo.getSelectionModel().select(Task.RecurrenceType.NONE);
 
         tasksListView.setItems(tasks);
         tasksListView.setCellFactory(param -> new TaskListCell());
@@ -116,20 +121,25 @@ public class TasksController {
         String title = taskTitleField.getText();
         if (title != null && !title.isBlank()) {
             Task newTask = new Task(title, priorityCombo.getValue(), dueDatePicker.getValue());
+
+            // Set recurrence
+            if (recurrenceCombo.getValue() != null) {
+                newTask.setRecurrenceType(recurrenceCombo.getValue());
+                // Default interval to 1 for now if recurrent
+                if (newTask.getRecurrenceType() != Task.RecurrenceType.NONE) {
+                    newTask.setRecurrenceInterval(1);
+                }
+            }
+
             taskService.saveTask(newTask);
 
             taskTitleField.clear();
             dueDatePicker.setValue(null);
             priorityCombo.getSelectionModel().select(Priority.MEDIUM);
+            recurrenceCombo.getSelectionModel().select(Task.RecurrenceType.NONE);
 
             loadTasks();
         }
-    }
-
-    @FXML
-    private void handleFilterAll() {
-        currentFilter = null;
-        loadTasks();
     }
 
     @FXML
@@ -161,13 +171,27 @@ public class TasksController {
                 if (item != null) {
                     Status oldStatus = item.getStatus();
                     Status newStatus = statusCheckBox.isSelected() ? Status.COMPLETED : Status.PENDING;
-                    item.setStatus(newStatus);
-                    taskService.saveTask(item);
 
-                    // Update streak if task was just completed
-                    if (oldStatus != Status.COMPLETED && newStatus == Status.COMPLETED) {
-                        streakService.onTaskCompleted();
-                        updateStreakDisplay();
+                    try {
+                        item.setStatus(newStatus);
+                        taskService.saveTask(item);
+
+                        // Update streak if task was just completed
+                        if (oldStatus != Status.COMPLETED && newStatus == Status.COMPLETED) {
+                            streakService.onTaskCompleted();
+                            updateStreakDisplay();
+                        }
+                    } catch (IllegalStateException ex) {
+                        // Task blocked
+                        statusCheckBox.setSelected(false); // Revert check
+                        item.setStatus(oldStatus); // Revert model
+
+                        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                                javafx.scene.control.Alert.AlertType.WARNING);
+                        alert.setTitle("Task Blocked");
+                        alert.setHeaderText("Cannot complete task");
+                        alert.setContentText(ex.getMessage());
+                        alert.showAndWait();
                     }
 
                     updateItem(item, false);
@@ -362,16 +386,26 @@ public class TasksController {
             LinkPickerController controller = loader.getController();
 
             Stage dialog = new Stage();
+            dialog.initOwner(tasksListView.getScene().getWindow());
             dialog.initModality(Modality.APPLICATION_MODAL);
             dialog.initStyle(StageStyle.TRANSPARENT);
+            dialog.setAlwaysOnTop(true);
 
             Scene scene = new Scene(root);
             scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
             scene.getStylesheets().add(App.class.getResource("/com/mnemos/ui/styles.css").toExternalForm());
             dialog.setScene(scene);
 
+            // Center on parent
+            dialog.setOnShown(event -> {
+                javafx.stage.Window owner = tasksListView.getScene().getWindow();
+                dialog.setX(owner.getX() + (owner.getWidth() - dialog.getWidth()) / 2);
+                dialog.setY(owner.getY() + (owner.getHeight() - dialog.getHeight()) / 2);
+            });
+
             controller.setStage(dialog);
             controller.setExclude(ItemType.TASK, selectedTask.getId());
+
             dialog.showAndWait();
 
             if (controller.isLinkCreated()) {

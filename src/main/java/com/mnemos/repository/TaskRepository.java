@@ -19,9 +19,9 @@ public class TaskRepository implements GenericRepository<Task, Long> {
         boolean isNew = (task.getId() == null);
 
         if (isNew) {
-            sql = "INSERT INTO tasks(title, priority, due_date, status, completed_at, pomodoro_count) VALUES(?, ?, ?, ?, ?, ?)";
+            sql = "INSERT INTO tasks(title, priority, due_date, status, completed_at, pomodoro_count, recurrence_type, recurrence_interval, recurrence_end_date, reminder_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         } else {
-            sql = "UPDATE tasks SET title = ?, priority = ?, due_date = ?, status = ?, completed_at = ?, pomodoro_count = ? WHERE id = ?";
+            sql = "UPDATE tasks SET title = ?, priority = ?, due_date = ?, status = ?, completed_at = ?, pomodoro_count = ?, recurrence_type = ?, recurrence_interval = ?, recurrence_end_date = ?, reminder_date = ? WHERE id = ?";
         }
 
         try (Connection conn = DatabaseManager.connect();
@@ -41,9 +41,15 @@ public class TaskRepository implements GenericRepository<Task, Long> {
 
             pstmt.setInt(6, task.getPomodoroCount());
 
+            // New fields
+            pstmt.setString(7, task.getRecurrenceType().name());
+            pstmt.setInt(8, task.getRecurrenceInterval());
+            pstmt.setString(9, task.getRecurrenceEndDate() != null ? task.getRecurrenceEndDate().toString() : null);
+            pstmt.setString(10, task.getReminderDate());
+
             // For UPDATE, add the ID parameter
             if (!isNew) {
-                pstmt.setLong(7, task.getId());
+                pstmt.setLong(11, task.getId());
             }
 
             int affectedRows = pstmt.executeUpdate();
@@ -123,18 +129,101 @@ public class TaskRepository implements GenericRepository<Task, Long> {
         }
     }
 
+    // Dependency Methods
+
+    public void addDependency(long predecessorId, long successorId) {
+        String sql = "INSERT OR IGNORE INTO task_dependencies (predecessor_id, successor_id) VALUES (?, ?)";
+        try (Connection conn = DatabaseManager.connect();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, predecessorId);
+            pstmt.setLong(2, successorId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Error adding dependency", e);
+        }
+    }
+
+    public void removeDependency(long predecessorId, long successorId) {
+        String sql = "DELETE FROM task_dependencies WHERE predecessor_id = ? AND successor_id = ?";
+        try (Connection conn = DatabaseManager.connect();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, predecessorId);
+            pstmt.setLong(2, successorId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Error removing dependency", e);
+        }
+    }
+
+    public List<Long> getPredecessors(long taskId) {
+        List<Long> ids = new ArrayList<>();
+        String sql = "SELECT predecessor_id FROM task_dependencies WHERE successor_id = ?";
+        try (Connection conn = DatabaseManager.connect();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, taskId);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                ids.add(rs.getLong("predecessor_id"));
+            }
+        } catch (SQLException e) {
+            logger.error("Error getting predecessors", e);
+        }
+        return ids;
+    }
+
+    public boolean canStart(long taskId) {
+        // A task can start if all its predecessors are COMPLETED
+        String sql = """
+                    SELECT COUNT(*) FROM task_dependencies td
+                    JOIN tasks t ON td.predecessor_id = t.id
+                    WHERE td.successor_id = ? AND t.status != 'COMPLETED'
+                """;
+        try (Connection conn = DatabaseManager.connect();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, taskId);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) == 0; // 0 blocking tasks means can start
+            }
+        } catch (SQLException e) {
+            logger.error("Error checking canStart", e);
+        }
+        return true; // Default to true if error
+    }
+
     private Task mapRow(ResultSet rs) throws SQLException {
         String dateStr = rs.getString("due_date");
         LocalDate date = (dateStr != null && !dateStr.isEmpty()) ? LocalDate.parse(dateStr) : null;
 
         int pomodoroCount = rs.getInt("pomodoro_count");
 
-        return new Task(
+        // Map new fields null-safely
+        String recTypeStr = rs.getString("recurrence_type");
+        Task.RecurrenceType recurrenceType = (recTypeStr != null) ? Task.RecurrenceType.valueOf(recTypeStr)
+                : Task.RecurrenceType.NONE;
+
+        int recurrenceInterval = rs.getInt("recurrence_interval"); // 0 if null
+
+        String recEndDateStr = rs.getString("recurrence_end_date");
+        LocalDate recurrenceEndDate = (recEndDateStr != null && !recEndDateStr.isEmpty())
+                ? LocalDate.parse(recEndDateStr)
+                : null;
+
+        String reminderDate = rs.getString("reminder_date");
+
+        Task task = new Task(
                 rs.getLong("id"),
                 rs.getString("title"),
                 Task.Priority.valueOf(rs.getString("priority")),
                 date,
                 Task.Status.valueOf(rs.getString("status")),
                 pomodoroCount);
+
+        task.setRecurrenceType(recurrenceType);
+        task.setRecurrenceInterval(recurrenceInterval);
+        task.setRecurrenceEndDate(recurrenceEndDate);
+        task.setReminderDate(reminderDate);
+
+        return task;
     }
 }

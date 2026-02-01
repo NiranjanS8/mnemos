@@ -84,16 +84,26 @@ public class FilesController {
             LinkPickerController controller = loader.getController();
 
             Stage dialog = new Stage();
+            dialog.initOwner(filesListView.getScene().getWindow());
             dialog.initModality(Modality.APPLICATION_MODAL);
             dialog.initStyle(StageStyle.TRANSPARENT);
+            dialog.setAlwaysOnTop(true);
 
             Scene scene = new Scene(root);
             scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
             scene.getStylesheets().add(App.class.getResource("/com/mnemos/ui/styles.css").toExternalForm());
             dialog.setScene(scene);
 
+            // Center on parent
+            dialog.setOnShown(event -> {
+                javafx.stage.Window owner = filesListView.getScene().getWindow();
+                dialog.setX(owner.getX() + (owner.getWidth() - dialog.getWidth()) / 2);
+                dialog.setY(owner.getY() + (owner.getHeight() - dialog.getHeight()) / 2);
+            });
+
             controller.setStage(dialog);
             controller.setExclude(ItemType.FILE, selectedFile.getId());
+
             dialog.showAndWait();
 
             if (controller.isLinkCreated()) {

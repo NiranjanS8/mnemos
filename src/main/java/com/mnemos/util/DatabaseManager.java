@@ -118,6 +118,30 @@ public class DatabaseManager {
                 // Column already exists, ignore
             }
 
+            // Migration: Add recurrence and reminder columns
+            try {
+                stmt.execute("ALTER TABLE tasks ADD COLUMN recurrence_type TEXT");
+                stmt.execute("ALTER TABLE tasks ADD COLUMN recurrence_interval INTEGER");
+                stmt.execute("ALTER TABLE tasks ADD COLUMN recurrence_end_date TEXT");
+                stmt.execute("ALTER TABLE tasks ADD COLUMN reminder_date TEXT");
+                logger.info("Added recurrence and reminder columns to tasks table");
+            } catch (SQLException e) {
+                // Columns likely already exist or partial failure (SQLite doesn't support IF
+                // EXISTS for columns)
+                // We rely on catch-ignore for robustness in this simple migration setup
+            }
+
+            String taskDependenciesTable = """
+                    CREATE TABLE IF NOT EXISTS task_dependencies (
+                        predecessor_id INTEGER NOT NULL,
+                        successor_id INTEGER NOT NULL,
+                        PRIMARY KEY (predecessor_id, successor_id),
+                        FOREIGN KEY(predecessor_id) REFERENCES tasks(id) ON DELETE CASCADE,
+                        FOREIGN KEY(successor_id) REFERENCES tasks(id) ON DELETE CASCADE
+                    );
+                    """;
+            stmt.execute(taskDependenciesTable);
+
             logger.info("Database initialized successfully.");
 
         } catch (SQLException e) {

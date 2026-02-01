@@ -5,6 +5,7 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleButton?>
@@ -14,12 +15,15 @@
 <?import javafx.scene.layout.VBox?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mnemos.ui.TasksController">
+    <fx:define>
+        <ToggleGroup fx:id="filterGroup"/>
+    </fx:define>
    <children>
       <VBox spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" style="-fx-padding: 10;">
          <children>
             <!-- Streak Display -->
             <HBox alignment="CENTER_LEFT" style="-fx-padding: 5 0 5 0;">
-               <javafx.scene.control.Label fx:id="streakLabel" text="🔥 0 Day Streak" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #ff6b35;" />
+               <Label fx:id="streakLabel" text="🔥 0 Day Streak" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #ff6b35;" />
             </HBox>
             
             <!-- Add Task Area -->
@@ -30,16 +34,14 @@
                 </HBox>
                 <HBox spacing="5.0" alignment="CENTER_LEFT">
                     <ComboBox fx:id="priorityCombo" prefWidth="80" promptText="Pri" />
-                    <Button onAction="#handleAddTask" text="Add" styleClass="action-btn" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    <ComboBox fx:id="recurrenceCombo" prefWidth="100" promptText="Repeat" />
+                    <Button onAction="#handleAddTask" text="Add" styleClass="action-btn" HBox.hgrow="ALWAYS" maxWidth="10000"/>
                 </HBox>
             </VBox>
             
             <!-- Filters -->
             <HBox spacing="10.0" alignment="CENTER">
-                <ToggleButton text="All" selected="true" onAction="#handleFilterAll" styleClass="icon-btn">
-                   <toggleGroup><ToggleGroup fx:id="filterGroup"/></toggleGroup>
-                </ToggleButton>
-                <ToggleButton text="Pending" onAction="#handleFilterPending" styleClass="icon-btn" toggleGroup="$filterGroup"/>
+                <ToggleButton text="Pending" selected="true" onAction="#handleFilterPending" styleClass="icon-btn" toggleGroup="$filterGroup"/>
                 <ToggleButton text="Done" onAction="#handleFilterCompleted" styleClass="icon-btn" toggleGroup="$filterGroup"/>
             </HBox>
 
@@ -49,7 +51,7 @@
             <!-- Linked Items Section -->
             <VBox fx:id="linkedItemsSection" spacing="5" style="-fx-background-color: rgba(255,255,255,0.05); -fx-padding: 8; -fx-background-radius: 6;" visible="false" managed="false">
                 <HBox alignment="CENTER_LEFT" spacing="10">
-                    <javafx.scene.control.Label text="🔗 Linked Items" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #6c8cff;"/>
+                    <Label text="🔗 Linked Items" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #6c8cff;"/>
                     <javafx.scene.layout.Region HBox.hgrow="ALWAYS"/>
                     <Button text="+ Add Link" onAction="#handleAddLink" style="-fx-background-color: transparent; -fx-text-fill: #6c8cff; -fx-font-size: 11px; -fx-cursor: hand;"/>
                 </HBox>

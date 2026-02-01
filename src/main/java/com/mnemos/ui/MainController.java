@@ -53,8 +53,10 @@ public class MainController {
             AnchorPane.setRightAnchor(filesView, 0.0);
             filesContainer.getChildren().add(filesView);
 
-        } catch (java.io.IOException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
+            com.mnemos.util.AlertUtils.showError("Initialization Error", "Failed to load application modules.",
+                    e.getMessage());
         }
     }
 
