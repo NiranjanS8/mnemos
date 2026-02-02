@@ -9,8 +9,9 @@ public class PomodoroTimer {
         WORK, BREAK, STOPPED
     }
 
-    private static final int WORK_DURATION_MINUTES = 25;
-    private static final int BREAK_DURATION_MINUTES = 5;
+    // Default durations
+    private static final int DEFAULT_WORK_MINUTES = 25;
+    private static final int DEFAULT_BREAK_MINUTES = 5;
 
     private Timeline timeline;
     private int remainingSeconds;
@@ -19,20 +20,34 @@ public class PomodoroTimer {
     private Runnable onCompleteCallback;
     private boolean isPaused;
 
+    // Configurable durations
+    private int workDurationMinutes;
+    private int breakDurationMinutes;
+
     public PomodoroTimer() {
         this.currentState = TimerState.STOPPED;
         this.isPaused = false;
+        this.workDurationMinutes = DEFAULT_WORK_MINUTES;
+        this.breakDurationMinutes = DEFAULT_BREAK_MINUTES;
+    }
+
+    public void setWorkDuration(int minutes) {
+        this.workDurationMinutes = Math.max(1, Math.min(120, minutes)); // 1-120 min range
+    }
+
+    public void setBreakDuration(int minutes) {
+        this.breakDurationMinutes = Math.max(1, Math.min(60, minutes)); // 1-60 min range
     }
 
     public void startWork() {
         currentState = TimerState.WORK;
-        remainingSeconds = WORK_DURATION_MINUTES * 60;
+        remainingSeconds = workDurationMinutes * 60;
         startTimer();
     }
 
     public void startBreak() {
         currentState = TimerState.BREAK;
-        remainingSeconds = BREAK_DURATION_MINUTES * 60;
+        remainingSeconds = breakDurationMinutes * 60;
         startTimer();
     }
 
@@ -105,10 +120,10 @@ public class PomodoroTimer {
     }
 
     public int getWorkDurationMinutes() {
-        return WORK_DURATION_MINUTES;
+        return workDurationMinutes;
     }
 
     public int getBreakDurationMinutes() {
-        return BREAK_DURATION_MINUTES;
+        return breakDurationMinutes;
     }
 }

@@ -26,18 +26,35 @@
                <Label fx:id="streakLabel" text="🔥 0 Day Streak" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #ff6b35;" />
             </HBox>
             
-            <!-- Add Task Area -->
-            <VBox spacing="5.0" style="-fx-background-color: rgba(255,255,255,0.05); -fx-padding: 8; -fx-background-radius: 6;">
-                <HBox spacing="5.0">
-                    <TextField fx:id="taskTitleField" promptText="New Task..." HBox.hgrow="ALWAYS" styleClass="title-field" style="-fx-font-size: 12;" />
-                    <DatePicker fx:id="dueDatePicker" prefWidth="90" promptText="Due" />
-                </HBox>
-                <HBox spacing="5.0" alignment="CENTER_LEFT">
-                    <ComboBox fx:id="priorityCombo" prefWidth="80" promptText="Pri" />
-                    <ComboBox fx:id="recurrenceCombo" prefWidth="100" promptText="Repeat" />
-                    <Button onAction="#handleAddTask" text="Add" styleClass="action-btn" HBox.hgrow="ALWAYS" maxWidth="10000"/>
-                </HBox>
-            </VBox>
+            <!-- Add Task Card -->
+            <javafx.scene.layout.StackPane styleClass="add-task-card">
+               <children>
+                  <VBox spacing="15.0">
+                     <children>
+                        <Label text="New Task" styleClass="card-title" />
+                        
+                        <!-- Floating Label Input -->
+                        <javafx.scene.layout.StackPane alignment="CENTER_LEFT">
+                           <children>
+                              <TextField fx:id="taskTitleField" styleClass="floating-input" HBox.hgrow="ALWAYS" />
+                              <Label fx:id="taskTitleLabel" text="What needs to be done?" styleClass="floating-label" mouseTransparent="true"/>
+                           </children>
+                        </javafx.scene.layout.StackPane>
+                        
+                        <!-- Controls Row -->
+                        <HBox spacing="10.0" alignment="CENTER_LEFT">
+                           <ComboBox fx:id="priorityCombo" promptText="Priority" styleClass="modern-combo-box" prefWidth="110"/>
+                           <DatePicker fx:id="dueDatePicker" promptText="Due Date" styleClass="modern-date-picker" prefWidth="130"/>
+                           <ComboBox fx:id="recurrenceCombo" promptText="Repeat" styleClass="modern-combo-box" prefWidth="110"/>
+                           
+                           <javafx.scene.layout.Region HBox.hgrow="ALWAYS" />
+                           
+                           <Button onAction="#handleAddTask" text="Add Task" styleClass="add-task-btn" />
+                        </HBox>
+                     </children>
+                  </VBox>
+               </children>
+            </javafx.scene.layout.StackPane>
             
             <!-- Filters -->
             <HBox spacing="10.0" alignment="CENTER">

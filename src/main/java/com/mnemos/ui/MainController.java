@@ -19,6 +19,13 @@ public class MainController {
     private AnchorPane filesContainer;
 
     @FXML
+    private javafx.scene.control.ToggleButton notesTabBtn;
+    @FXML
+    private javafx.scene.control.ToggleButton tasksTabBtn;
+    @FXML
+    private javafx.scene.control.ToggleButton filesTabBtn;
+
+    @FXML
     public void initialize() {
         try {
             javafx.fxml.FXMLLoader notesLoader = new javafx.fxml.FXMLLoader(
@@ -52,6 +59,35 @@ public class MainController {
             AnchorPane.setLeftAnchor(filesView, 0.0);
             AnchorPane.setRightAnchor(filesView, 0.0);
             filesContainer.getChildren().add(filesView);
+
+            // Setup Header Tabs
+            javafx.scene.control.ToggleGroup tabGroup = new javafx.scene.control.ToggleGroup();
+            notesTabBtn.setToggleGroup(tabGroup);
+            tasksTabBtn.setToggleGroup(tabGroup);
+            filesTabBtn.setToggleGroup(tabGroup);
+
+            // Sync Buttons -> Tabs
+            notesTabBtn.setOnAction(e -> mainTabPane.getSelectionModel().select(0));
+            tasksTabBtn.setOnAction(e -> mainTabPane.getSelectionModel().select(1));
+            filesTabBtn.setOnAction(e -> mainTabPane.getSelectionModel().select(2));
+
+            // Sync Tabs -> Buttons (in case something else changes tabs)
+            mainTabPane.getSelectionModel().selectedIndexProperty().addListener((obs, oldVal, newVal) -> {
+                switch (newVal.intValue()) {
+                    case 0:
+                        tabGroup.selectToggle(notesTabBtn);
+                        break;
+                    case 1:
+                        tabGroup.selectToggle(tasksTabBtn);
+                        break;
+                    case 2:
+                        tabGroup.selectToggle(filesTabBtn);
+                        break;
+                }
+            });
+
+            // Ensure correct initial state
+            tabGroup.selectToggle(notesTabBtn);
 
         } catch (Throwable e) {
             e.printStackTrace();

@@ -32,6 +32,8 @@ public class TasksController {
     @FXML
     private TextField taskTitleField;
     @FXML
+    private Label taskTitleLabel;
+    @FXML
     private DatePicker dueDatePicker;
     @FXML
     private ComboBox<Priority> priorityCombo;
@@ -51,6 +53,9 @@ public class TasksController {
     private final StreakService streakService = new StreakService();
     private final LinkService linkService = new LinkService();
     private final ObservableList<Task> tasks = FXCollections.observableArrayList();
+
+    // Track active Pomodoro dialog to prevent multiple instances
+    private javafx.stage.Stage activePomodoroDialog = null;
     private final ObservableList<LinkedItem> linkedItems = FXCollections.observableArrayList();
     private Status currentFilter = Status.PENDING; // Default to Pending
     private Task selectedTask = null;
@@ -78,6 +83,24 @@ public class TasksController {
 
         loadTasks();
         updateStreakDisplay();
+
+        // Floating Label Logic
+        taskTitleField.focusedProperty().addListener((obs, oldVal, newVal) -> updateFloatingLabel());
+        taskTitleField.textProperty().addListener((obs, oldVal, newVal) -> updateFloatingLabel());
+        updateFloatingLabel(); // Initial state
+    }
+
+    private void updateFloatingLabel() {
+        boolean isFocused = taskTitleField.isFocused();
+        boolean hasText = taskTitleField.getText() != null && !taskTitleField.getText().isEmpty();
+
+        if (isFocused || hasText) {
+            if (!taskTitleLabel.getStyleClass().contains("active")) {
+                taskTitleLabel.getStyleClass().add("active");
+            }
+        } else {
+            taskTitleLabel.getStyleClass().remove("active");
+        }
     }
 
     private void updateLinkedItemsSection() {
@@ -159,6 +182,7 @@ public class TasksController {
         private final javafx.scene.control.Label titleLabel = new javafx.scene.control.Label();
         private final javafx.scene.control.Label priorityLabel = new javafx.scene.control.Label();
         private final javafx.scene.control.Label dueDateLabel = new javafx.scene.control.Label();
+        private final javafx.scene.control.Button reminderButton = new javafx.scene.control.Button();
         private final javafx.scene.control.Button timerButton = new javafx.scene.control.Button();
         private final javafx.scene.control.Button deleteButton = new javafx.scene.control.Button();
         private final HBox content = new HBox(8);
@@ -226,6 +250,25 @@ public class TasksController {
                 }
             });
 
+            // Reminder button
+            reminderButton.setText("🔔");
+            reminderButton.setMinWidth(35);
+            reminderButton.setMaxWidth(35);
+            reminderButton.setMinHeight(26);
+            reminderButton.setMaxHeight(26);
+            reminderButton.setStyle(
+                    "-fx-background-color: rgba(255, 189, 46, 0.25); -fx-text-fill: #ffbd2e; -fx-cursor: hand; -fx-font-size: 12px; -fx-background-radius: 5;");
+            reminderButton.setOnAction(e -> {
+                System.out.println("Reminder button clicked!");
+                Task item = getItem();
+                if (item != null) {
+                    System.out.println("Task found: " + item.getTitle());
+                    TasksController.this.showReminderDropdown(item, reminderButton);
+                } else {
+                    System.out.println("No task item found!");
+                }
+            });
+
             // Delete button - text based for visibility
             deleteButton.setText("Delete");
             deleteButton.setMinWidth(60);
@@ -258,7 +301,8 @@ public class TasksController {
             });
 
             content.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-            content.getChildren().addAll(statusCheckBox, titleLabel, priorityLabel, dueDateLabel, timerButton,
+            content.getChildren().addAll(statusCheckBox, titleLabel, priorityLabel, dueDateLabel, reminderButton,
+                    timerButton,
                     deleteButton);
         }
 
@@ -339,6 +383,12 @@ public class TasksController {
     }
 
     private void showPomodoroDialog(Task task) {
+        // Prevent multiple dialogs - check if one is already showing
+        if (activePomodoroDialog != null && activePomodoroDialog.isShowing()) {
+            activePomodoroDialog.requestFocus();
+            return;
+        }
+
         try {
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
                     getClass().getResource("/com/mnemos/ui/PomodoroDialog.fxml"));
@@ -346,11 +396,13 @@ public class TasksController {
             com.mnemos.ui.PomodoroController controller = loader.getController();
 
             javafx.stage.Stage dialog = new javafx.stage.Stage();
-            dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            dialog.initStyle(javafx.stage.StageStyle.TRANSPARENT);
             dialog.initOwner(tasksListView.getScene().getWindow());
-            dialog.setTitle("Pomodoro Timer - " + task.getTitle());
+            dialog.setResizable(false);
+            dialog.setAlwaysOnTop(true);
 
             javafx.scene.Scene scene = new javafx.scene.Scene(root);
+            scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
             scene.getStylesheets().add(getClass().getResource("/com/mnemos/ui/styles.css").toExternalForm());
             dialog.setScene(scene);
 
@@ -363,8 +415,44 @@ public class TasksController {
                 loadTasks(); // Refresh list
             });
 
+            // Track this dialog and clear reference when closed
+            activePomodoroDialog = dialog;
+            dialog.setOnHidden(e -> activePomodoroDialog = null);
+
             dialog.show();
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showReminderDropdown(Task task, javafx.scene.control.Button anchorButton) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                    getClass().getResource("/com/mnemos/ui/ReminderDropdown.fxml"));
+            javafx.scene.Parent root = loader.load();
+            ReminderDropdownController controller = loader.getController();
+
+            javafx.stage.Popup popup = new javafx.stage.Popup();
+            popup.getContent().add(root);
+            popup.setAutoHide(true);
+
+            // Apply stylesheet to the root node directly
+            String cssPath = getClass().getResource("/com/mnemos/ui/styles.css").toExternalForm();
+            root.getStylesheets().add(cssPath);
+
+            controller.setTask(task);
+            controller.setPopup(popup);
+
+            // Position below the anchor button
+            javafx.geometry.Bounds bounds = anchorButton.localToScreen(anchorButton.getBoundsInLocal());
+            if (bounds != null) {
+                popup.show(anchorButton.getScene().getWindow(), bounds.getMinX(), bounds.getMaxY() + 5);
+            } else {
+                System.err.println("Could not get screen bounds for anchor button");
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error showing reminder dropdown: " + e.getMessage());
             e.printStackTrace();
         }
     }

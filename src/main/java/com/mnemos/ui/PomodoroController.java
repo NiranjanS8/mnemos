@@ -4,9 +4,8 @@ import com.mnemos.model.Task;
 import com.mnemos.util.PomodoroTimer;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class PomodoroController {
@@ -25,23 +24,87 @@ public class PomodoroController {
     private Button stopButton;
     @FXML
     private Label pomodoroCountLabel;
+    @FXML
+    private Button closeButton;
+    @FXML
+    private VBox contentPane;
+    @FXML
+    private VBox settingsPane;
+    @FXML
+    private Spinner<Integer> workSpinner;
+    @FXML
+    private Spinner<Integer> breakSpinner;
 
     private PomodoroTimer timer;
     private Stage stage;
     private Task task;
     private int completedPomodoros = 0;
     private Runnable onPomodoroCompleteCallback;
+    private double xOffset = 0;
+    private double yOffset = 0;
 
     @FXML
     public void initialize() {
         timer = new PomodoroTimer();
-
         timer.setOnTickCallback(() -> Platform.runLater(this::updateDisplay));
         timer.setOnCompleteCallback(() -> Platform.runLater(this::handleTimerComplete));
+
+        // Initialize work spinner (5-120 minutes, default 25)
+        SpinnerValueFactory.IntegerSpinnerValueFactory workFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(
+                5, 120, 25, 5);
+        workSpinner.setValueFactory(workFactory);
+        workSpinner.setEditable(true);
+        workSpinner.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                timer.setWorkDuration(newVal);
+                updateTimerDisplay();
+            }
+        });
+
+        // Initialize break spinner (1-30 minutes, default 5)
+        SpinnerValueFactory.IntegerSpinnerValueFactory breakFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(
+                1, 30, 5, 1);
+        breakSpinner.setValueFactory(breakFactory);
+        breakSpinner.setEditable(true);
+        breakSpinner.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                timer.setBreakDuration(newVal);
+            }
+        });
+
+        // Apply dark styling to spinners
+        styleSpinner(workSpinner);
+        styleSpinner(breakSpinner);
+    }
+
+    private void styleSpinner(Spinner<?> spinner) {
+        spinner.getEditor().setStyle(
+                "-fx-background-color: rgba(255,255,255,0.1); " +
+                        "-fx-text-fill: #e0e0e0; " +
+                        "-fx-background-radius: 5;");
+    }
+
+    private void updateTimerDisplay() {
+        if (timer.getCurrentState() == PomodoroTimer.TimerState.STOPPED) {
+            int minutes = workSpinner.getValue();
+            timerLabel.setText(String.format("%02d:00", minutes));
+        }
     }
 
     public void setStage(Stage stage) {
         this.stage = stage;
+
+        // Enable window dragging
+        if (contentPane != null) {
+            contentPane.setOnMousePressed(event -> {
+                xOffset = event.getSceneX();
+                yOffset = event.getSceneY();
+            });
+            contentPane.setOnMouseDragged(event -> {
+                stage.setX(event.getScreenX() - xOffset);
+                stage.setY(event.getScreenY() - yOffset);
+            });
+        }
     }
 
     public void setTask(Task task) {
@@ -55,14 +118,42 @@ public class PomodoroController {
         this.onPomodoroCompleteCallback = callback;
     }
 
+    // Preset handlers
+    @FXML
+    private void handlePreset25() {
+        workSpinner.getValueFactory().setValue(25);
+        breakSpinner.getValueFactory().setValue(5);
+    }
+
+    @FXML
+    private void handlePreset50() {
+        workSpinner.getValueFactory().setValue(50);
+        breakSpinner.getValueFactory().setValue(10);
+    }
+
+    @FXML
+    private void handlePreset90() {
+        workSpinner.getValueFactory().setValue(90);
+        breakSpinner.getValueFactory().setValue(20);
+    }
+
     @FXML
     private void handleStart() {
         if (timer.getCurrentState() == PomodoroTimer.TimerState.STOPPED) {
+            // Apply spinner values to timer
+            timer.setWorkDuration(workSpinner.getValue());
+            timer.setBreakDuration(breakSpinner.getValue());
+
             timer.startWork();
             stateLabel.setText("Focus Time 🎯");
             startButton.setDisable(true);
             pauseButton.setDisable(false);
             stopButton.setDisable(false);
+
+            // Hide settings while running
+            settingsPane.setVisible(false);
+            settingsPane.setManaged(false);
+
         } else if (timer.isPaused()) {
             timer.resume();
             pauseButton.setText("Pause");
@@ -128,16 +219,31 @@ public class PomodoroController {
     }
 
     private void resetUI() {
-        timerLabel.setText("25:00");
+        int minutes = workSpinner.getValue();
+        timerLabel.setText(String.format("%02d:00", minutes));
         progressBar.setProgress(0);
         stateLabel.setText("Ready to Focus");
         startButton.setDisable(false);
         pauseButton.setDisable(true);
         stopButton.setDisable(true);
         pauseButton.setText("Pause");
+
+        // Show settings again
+        settingsPane.setVisible(true);
+        settingsPane.setManaged(true);
     }
 
     public int getCompletedPomodoros() {
         return completedPomodoros;
+    }
+
+    @FXML
+    private void handleClose() {
+        if (timer != null) {
+            timer.stop();
+        }
+        if (stage != null) {
+            stage.close();
+        }
     }
 }
