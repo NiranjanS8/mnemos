@@ -54,58 +54,6 @@ A modern, feature-rich **personal productivity desktop application** built with 
 | **Maven** | Build and dependency management |
 
 ---
-
-## 📦 Installation
-
-### Prerequisites
-- **Java 21** or higher installed
-- **Maven 3.6+** installed
-
-### Build from Source
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd mnemos
-   ```
-
-2. **Build the project**
-   ```bash
-   mvn clean package
-   ```
-
-3. **Run the application**
-   ```bash
-   mvn javafx:run
-   ```
-
-### Create Executable
-
-To create a native Windows installer/executable:
-
-```bash
-mvn clean package jpackage:jpackage
-```
-
-The installer will be generated in `target/installer/`.
-
----
-
-## 🚀 Usage
-
-### Running the App
-```bash
-mvn javafx:run
-```
-
-### First-Time Setup
-1. Launch the application
-2. Set up your password for data protection
-3. Start creating tasks, notes, and organizing your work!
-
-### Keyboard Shortcuts
-- **Command Palette**: Quick access to all app commands and navigation
-
 ---
 
 ## 📁 Project Structure
@@ -132,17 +80,11 @@ src/main/resources/com/mnemos/ui/
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 ---
-
-## 📄 License
-
-This project is open source. See the LICENSE file for details.
-
 ---
 
 ## 👤 Author
 
-**Mnemos Team**
+**Niranjan**
 
 ---
 
-*Built with ❤️ using JavaFX*
