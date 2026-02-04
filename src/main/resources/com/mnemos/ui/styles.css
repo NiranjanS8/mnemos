@@ -178,6 +178,42 @@
     -fx-border-color: rgba(90, 122, 255, 0.3);
 }
 
+/* Linked Items List specific styling */
+#linkedItemsListView {
+    -fx-background-color: rgba(0, 0, 0, 0.2);
+    -fx-control-inner-background: rgba(0, 0, 0, 0.2);
+    -fx-background-radius: 6;
+    -fx-border-color: rgba(255, 255, 255, 0.08);
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+#linkedItemsListView .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ccc;
+    -fx-padding: 8 10;
+    -fx-font-size: 12px;
+}
+
+#linkedItemsListView .list-cell:hover {
+    -fx-background-color: rgba(108, 140, 255, 0.1);
+}
+
+#linkedItemsListView .list-cell:selected {
+    -fx-background-color: rgba(108, 140, 255, 0.2);
+}
+
+#linkedItemsListView:empty,
+#linkedItemsListView .placeholder {
+    -fx-background-color: rgba(0, 0, 0, 0.2);
+}
+
+#linkedItemsListView .placeholder .label {
+    -fx-text-fill: #666;
+    -fx-font-size: 11px;
+    -fx-font-style: italic;
+}
+
 /* Text Fields */
 .title-field {
     -fx-background-color: rgba(255, 255, 255, 0.05);

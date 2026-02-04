@@ -72,7 +72,7 @@
                     <javafx.scene.layout.Region HBox.hgrow="ALWAYS"/>
                     <Button text="+ Add Link" onAction="#handleAddLink" style="-fx-background-color: transparent; -fx-text-fill: #6c8cff; -fx-font-size: 11px; -fx-cursor: hand;"/>
                 </HBox>
-                <ListView fx:id="linkedItemsListView" prefHeight="100" styleClass="custom-list-view"/>
+                <ListView fx:id="linkedItemsListView" minHeight="60" prefHeight="100" maxHeight="150" styleClass="custom-list-view"/>
             </VBox>
          </children>
       </VBox>

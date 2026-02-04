@@ -75,6 +75,11 @@ public class TasksController {
         linkedItemsListView.setItems(linkedItems);
         linkedItemsListView.setCellFactory(param -> new LinkedItemCell());
 
+        // Add placeholder for empty list
+        Label placeholder = new Label("No linked items. Click '+ Add Link' to connect notes, files, or tasks.");
+        placeholder.setStyle("-fx-text-fill: #666; -fx-font-size: 11px; -fx-font-style: italic; -fx-wrap-text: true;");
+        linkedItemsListView.setPlaceholder(placeholder);
+
         // Listen for task selection to show linked items
         tasksListView.getSelectionModel().selectedItemProperty().addListener((obs, oldTask, newTask) -> {
             selectedTask = newTask;
