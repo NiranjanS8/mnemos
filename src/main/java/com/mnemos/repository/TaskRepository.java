@@ -19,9 +19,9 @@ public class TaskRepository implements GenericRepository<Task, Long> {
         boolean isNew = (task.getId() == null);
 
         if (isNew) {
-            sql = "INSERT INTO tasks(title, priority, due_date, status, completed_at, pomodoro_count, recurrence_type, recurrence_interval, recurrence_end_date, reminder_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            sql = "INSERT INTO tasks(title, priority, due_date, status, completed_at, pomodoro_count, recurrence_type, recurrence_interval, recurrence_end_date, reminder_date, recurrence_unit, recurrence_days, recurrence_max_occurrences) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         } else {
-            sql = "UPDATE tasks SET title = ?, priority = ?, due_date = ?, status = ?, completed_at = ?, pomodoro_count = ?, recurrence_type = ?, recurrence_interval = ?, recurrence_end_date = ?, reminder_date = ? WHERE id = ?";
+            sql = "UPDATE tasks SET title = ?, priority = ?, due_date = ?, status = ?, completed_at = ?, pomodoro_count = ?, recurrence_type = ?, recurrence_interval = ?, recurrence_end_date = ?, reminder_date = ?, recurrence_unit = ?, recurrence_days = ?, recurrence_max_occurrences = ? WHERE id = ?";
         }
 
         try (Connection conn = DatabaseManager.connect();
@@ -46,10 +46,13 @@ public class TaskRepository implements GenericRepository<Task, Long> {
             pstmt.setInt(8, task.getRecurrenceInterval());
             pstmt.setString(9, task.getRecurrenceEndDate() != null ? task.getRecurrenceEndDate().toString() : null);
             pstmt.setString(10, task.getReminderDate());
+            pstmt.setString(11, task.getRecurrenceUnit() != null ? task.getRecurrenceUnit().name() : null);
+            pstmt.setString(12, task.getRecurrenceDays());
+            pstmt.setInt(13, task.getRecurrenceMaxOccurrences());
 
             // For UPDATE, add the ID parameter
             if (!isNew) {
-                pstmt.setLong(11, task.getId());
+                pstmt.setLong(14, task.getId());
             }
 
             int affectedRows = pstmt.executeUpdate();
@@ -234,6 +237,11 @@ public class TaskRepository implements GenericRepository<Task, Long> {
         task.setRecurrenceInterval(recurrenceInterval);
         task.setRecurrenceEndDate(recurrenceEndDate);
         task.setReminderDate(reminderDate);
+
+        String recUnitStr = rs.getString("recurrence_unit");
+        task.setRecurrenceUnit(recUnitStr != null ? Task.RecurrenceUnit.valueOf(recUnitStr) : Task.RecurrenceUnit.DAYS);
+        task.setRecurrenceDays(rs.getString("recurrence_days"));
+        task.setRecurrenceMaxOccurrences(rs.getInt("recurrence_max_occurrences"));
 
         return task;
     }

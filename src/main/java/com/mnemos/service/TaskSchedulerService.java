@@ -2,14 +2,11 @@ package com.mnemos.service;
 
 import com.mnemos.model.Task;
 import com.mnemos.model.Task.RecurrenceType;
+import com.mnemos.model.Task.RecurrenceUnit;
 import com.mnemos.repository.TaskRepository;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.logging.Logger;
 
-/**
- * Service to handle task scheduling, recurrence, and reminders.
- */
 public class TaskSchedulerService {
     private static final Logger logger = Logger.getLogger(TaskSchedulerService.class.getName());
     private final TaskRepository taskRepository;
@@ -18,17 +15,19 @@ public class TaskSchedulerService {
         this.taskRepository = new TaskRepository();
     }
 
-    /**
-     * Handle task completion: if recurrent, create the next instance.
-     */
     public void onTaskCompleted(Task completedTask) {
         if (completedTask.getRecurrenceType() == RecurrenceType.NONE) {
             return;
         }
 
-        // Check if recurrence end date passed
         if (completedTask.getRecurrenceEndDate() != null &&
                 completedTask.getRecurrenceEndDate().isBefore(LocalDate.now())) {
+            return;
+        }
+
+        if (completedTask.getRecurrenceMaxOccurrences() > 0) {
+            // Max occurrences reached — don't create a new one
+            // (caller is expected to decrement before calling)
             return;
         }
 
@@ -45,36 +44,36 @@ public class TaskSchedulerService {
                 originalTask.getPriority(),
                 nextDueDate);
 
-        // Copy recurrence settings
         nextTask.setRecurrenceType(originalTask.getRecurrenceType());
         nextTask.setRecurrenceInterval(originalTask.getRecurrenceInterval());
         nextTask.setRecurrenceEndDate(originalTask.getRecurrenceEndDate());
-
-        // Note: We don't copy the reminder, or maybe we should?
-        // For now, let's assume the user sets a new reminder or we default to same
-        // offset.
-        // Let's copy it but adjust the date? The reminder date is a String ISO.
-        // Parsing it is complex without knowing if it's relative or absolute.
-        // We'll leave reminder null for the new instance for now (MVP).
+        nextTask.setRecurrenceUnit(originalTask.getRecurrenceUnit());
+        nextTask.setRecurrenceDays(originalTask.getRecurrenceDays());
+        nextTask.setRecurrenceMaxOccurrences(
+                originalTask.getRecurrenceMaxOccurrences() > 0
+                        ? originalTask.getRecurrenceMaxOccurrences() - 1
+                        : 0);
 
         return nextTask;
     }
 
     private LocalDate calculateNextDueDate(Task task) {
         LocalDate baseDate = task.getDueDate() != null ? task.getDueDate() : LocalDate.now();
+        int interval = task.getRecurrenceInterval() > 0 ? task.getRecurrenceInterval() : 1;
 
         if (task.getRecurrenceType() == RecurrenceType.DAILY) {
-            int interval = task.getRecurrenceInterval() > 0 ? task.getRecurrenceInterval() : 1;
             return baseDate.plusDays(interval);
         } else if (task.getRecurrenceType() == RecurrenceType.WEEKLY) {
-            int interval = task.getRecurrenceInterval() > 0 ? task.getRecurrenceInterval() : 1;
             return baseDate.plusWeeks(interval);
         } else if (task.getRecurrenceType() == RecurrenceType.CUSTOM) {
-            // Assume days for custom for now
-            int interval = task.getRecurrenceInterval() > 0 ? task.getRecurrenceInterval() : 1;
-            return baseDate.plusDays(interval);
+            RecurrenceUnit unit = task.getRecurrenceUnit() != null ? task.getRecurrenceUnit() : RecurrenceUnit.DAYS;
+            return switch (unit) {
+                case WEEKS -> baseDate.plusWeeks(interval);
+                case MONTHS -> baseDate.plusMonths(interval);
+                default -> baseDate.plusDays(interval);
+            };
         }
 
-        return baseDate.plusDays(1); // Default fallback
+        return baseDate.plusDays(1);
     }
 }

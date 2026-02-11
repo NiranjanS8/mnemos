@@ -10,22 +10,28 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Region;
+import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import com.mnemos.model.Task.Priority;
 import com.mnemos.model.Task.Status;
+import com.mnemos.model.Task.RecurrenceUnit;
 import com.mnemos.App;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class TasksController {
 
@@ -61,6 +67,15 @@ public class TasksController {
     private Status currentFilter = Status.PENDING;
     private Task selectedTask = null;
 
+    // Custom repeat dialog state
+    private int customRepeatInterval = 1;
+    private RecurrenceUnit customRepeatUnit = RecurrenceUnit.DAYS;
+    private String customRepeatDays = null;
+    private String customEndType = "NEVER";
+    private LocalDate customEndDate = null;
+    private int customMaxOccurrences = 0;
+    private Task.RecurrenceType previousRecurrenceSelection = Task.RecurrenceType.NONE;
+
     @FXML
     public void initialize() {
         priorityCombo.getItems().setAll(Priority.values());
@@ -68,6 +83,13 @@ public class TasksController {
 
         recurrenceCombo.getItems().setAll(Task.RecurrenceType.values());
         recurrenceCombo.getSelectionModel().select(Task.RecurrenceType.NONE);
+
+        recurrenceCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal == Task.RecurrenceType.CUSTOM) {
+                previousRecurrenceSelection = oldVal != null ? oldVal : Task.RecurrenceType.NONE;
+                showCustomRepeatDialog();
+            }
+        });
 
         tasksListView.setItems(tasks);
         tasksListView.setCellFactory(param -> new TaskListCell());
@@ -148,7 +170,16 @@ public class TasksController {
 
             if (recurrenceCombo.getValue() != null) {
                 newTask.setRecurrenceType(recurrenceCombo.getValue());
-                if (newTask.getRecurrenceType() != Task.RecurrenceType.NONE) {
+                if (newTask.getRecurrenceType() == Task.RecurrenceType.CUSTOM) {
+                    newTask.setRecurrenceInterval(customRepeatInterval);
+                    newTask.setRecurrenceUnit(customRepeatUnit);
+                    newTask.setRecurrenceDays(customRepeatDays);
+                    if ("ON_DATE".equals(customEndType)) {
+                        newTask.setRecurrenceEndDate(customEndDate);
+                    } else if ("AFTER".equals(customEndType)) {
+                        newTask.setRecurrenceMaxOccurrences(customMaxOccurrences);
+                    }
+                } else if (newTask.getRecurrenceType() != Task.RecurrenceType.NONE) {
                     newTask.setRecurrenceInterval(1);
                 }
             }
@@ -160,8 +191,233 @@ public class TasksController {
             priorityCombo.getSelectionModel().select(Priority.MEDIUM);
             recurrenceCombo.getSelectionModel().select(Task.RecurrenceType.NONE);
 
+            // Reset custom repeat state
+            customRepeatInterval = 1;
+            customRepeatUnit = RecurrenceUnit.DAYS;
+            customRepeatDays = null;
+            customEndType = "NEVER";
+            customEndDate = null;
+            customMaxOccurrences = 0;
+
             loadTasks();
         }
+    }
+
+    private void showCustomRepeatDialog() {
+        Stage dialogStage = new Stage();
+        dialogStage.initModality(Modality.APPLICATION_MODAL);
+        dialogStage.initStyle(StageStyle.TRANSPARENT);
+        dialogStage.initOwner(tasksListView.getScene().getWindow());
+
+        // -- Card content --
+        VBox card = new VBox(16);
+        card.getStyleClass().add("custom-repeat-dialog");
+        card.setPadding(new Insets(24));
+        card.setMaxWidth(380);
+        card.setMaxHeight(Region.USE_PREF_SIZE);
+
+        Label titleLabel = new Label("Custom Repeat");
+        titleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #e0e0e0;");
+
+        // == Repeat Every section ==
+        Label repeatLabel = new Label("Repeat every");
+        repeatLabel.getStyleClass().add("dialog-section-label");
+
+        Spinner<Integer> intervalSpinner = new Spinner<>(1, 99, customRepeatInterval);
+        intervalSpinner.setEditable(true);
+        intervalSpinner.setPrefWidth(80);
+        intervalSpinner.getStyleClass().add("custom-repeat-spinner");
+
+        ComboBox<String> unitCombo = new ComboBox<>();
+        unitCombo.getItems().addAll("Days", "Weeks", "Months");
+        unitCombo.getSelectionModel().select(
+                customRepeatUnit == RecurrenceUnit.WEEKS ? 1 : customRepeatUnit == RecurrenceUnit.MONTHS ? 2 : 0);
+        unitCombo.getStyleClass().add("modern-combo-box");
+        unitCombo.setPrefWidth(120);
+
+        HBox repeatRow = new HBox(10, intervalSpinner, unitCombo);
+        repeatRow.setAlignment(Pos.CENTER_LEFT);
+
+        // == Weekday selector (shown only for Weeks) ==
+        Label daysLabel = new Label("On these days");
+        daysLabel.getStyleClass().add("dialog-section-label");
+
+        String[] dayNames = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+        String[] dayKeys = { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" };
+        List<ToggleButton> dayButtons = new ArrayList<>();
+        HBox daysRow = new HBox(6);
+        daysRow.setAlignment(Pos.CENTER_LEFT);
+
+        List<String> preselectedDays = customRepeatDays != null ? Arrays.asList(customRepeatDays.split(","))
+                : new ArrayList<>();
+
+        for (int i = 0; i < dayNames.length; i++) {
+            ToggleButton tb = new ToggleButton(dayNames[i]);
+            tb.getStyleClass().add("weekday-toggle");
+            tb.setSelected(preselectedDays.contains(dayKeys[i]));
+            dayButtons.add(tb);
+            daysRow.getChildren().add(tb);
+        }
+
+        VBox weekdaySection = new VBox(6, daysLabel, daysRow);
+        weekdaySection.setVisible(unitCombo.getSelectionModel().getSelectedIndex() == 1);
+        weekdaySection.setManaged(unitCombo.getSelectionModel().getSelectedIndex() == 1);
+
+        unitCombo.valueProperty().addListener((obs, oldV, newV) -> {
+            boolean isWeeks = "Weeks".equals(newV);
+            weekdaySection.setVisible(isWeeks);
+            weekdaySection.setManaged(isWeeks);
+        });
+
+        // == End condition ==
+        Label endLabel = new Label("Ends");
+        endLabel.getStyleClass().add("dialog-section-label");
+
+        ToggleGroup endGroup = new ToggleGroup();
+
+        RadioButton neverRadio = new RadioButton("Never");
+        neverRadio.setToggleGroup(endGroup);
+        neverRadio.setStyle("-fx-text-fill: #ccc;");
+
+        RadioButton onDateRadio = new RadioButton("On date");
+        onDateRadio.setToggleGroup(endGroup);
+        onDateRadio.setStyle("-fx-text-fill: #ccc;");
+
+        DatePicker endDatePicker = new DatePicker();
+        endDatePicker.getStyleClass().add("modern-date-picker");
+        endDatePicker.setPrefWidth(150);
+        endDatePicker.setVisible(false);
+        endDatePicker.setManaged(false);
+        if (customEndDate != null)
+            endDatePicker.setValue(customEndDate);
+
+        HBox onDateRow = new HBox(8, onDateRadio, endDatePicker);
+        onDateRow.setAlignment(Pos.CENTER_LEFT);
+
+        RadioButton afterRadio = new RadioButton("After");
+        afterRadio.setToggleGroup(endGroup);
+        afterRadio.setStyle("-fx-text-fill: #ccc;");
+
+        Spinner<Integer> occurrencesSpinner = new Spinner<>(1, 999,
+                customMaxOccurrences > 0 ? customMaxOccurrences : 5);
+        occurrencesSpinner.setEditable(true);
+        occurrencesSpinner.setPrefWidth(80);
+        occurrencesSpinner.getStyleClass().add("custom-repeat-spinner");
+        occurrencesSpinner.setVisible(false);
+        occurrencesSpinner.setManaged(false);
+
+        Label occLabel = new Label("occurrences");
+        occLabel.setStyle("-fx-text-fill: #aaa; -fx-font-size: 12px;");
+        occLabel.setVisible(false);
+        occLabel.setManaged(false);
+
+        HBox afterRow = new HBox(8, afterRadio, occurrencesSpinner, occLabel);
+        afterRow.setAlignment(Pos.CENTER_LEFT);
+
+        // Pre-select end condition
+        if ("ON_DATE".equals(customEndType))
+            onDateRadio.setSelected(true);
+        else if ("AFTER".equals(customEndType))
+            afterRadio.setSelected(true);
+        else
+            neverRadio.setSelected(true);
+
+        endGroup.selectedToggleProperty().addListener((obs, oldT, newT) -> {
+            boolean isDate = newT == onDateRadio;
+            boolean isAfter = newT == afterRadio;
+            endDatePicker.setVisible(isDate);
+            endDatePicker.setManaged(isDate);
+            occurrencesSpinner.setVisible(isAfter);
+            occurrencesSpinner.setManaged(isAfter);
+            occLabel.setVisible(isAfter);
+            occLabel.setManaged(isAfter);
+        });
+        // Trigger initial visibility
+        if (onDateRadio.isSelected()) {
+            endDatePicker.setVisible(true);
+            endDatePicker.setManaged(true);
+        }
+        if (afterRadio.isSelected()) {
+            occurrencesSpinner.setVisible(true);
+            occurrencesSpinner.setManaged(true);
+            occLabel.setVisible(true);
+            occLabel.setManaged(true);
+        }
+
+        VBox endSection = new VBox(8, neverRadio, onDateRow, afterRow);
+
+        // == Buttons ==
+        Button saveBtn = new Button("Save");
+        saveBtn.getStyleClass().add("add-task-btn");
+        saveBtn.setOnAction(e -> {
+            customRepeatInterval = intervalSpinner.getValue();
+            String sel = unitCombo.getValue();
+            customRepeatUnit = "Weeks".equals(sel) ? RecurrenceUnit.WEEKS
+                    : "Months".equals(sel) ? RecurrenceUnit.MONTHS : RecurrenceUnit.DAYS;
+
+            // Collect selected weekdays
+            if (customRepeatUnit == RecurrenceUnit.WEEKS) {
+                List<String> selected = new ArrayList<>();
+                for (int i = 0; i < dayButtons.size(); i++) {
+                    if (dayButtons.get(i).isSelected())
+                        selected.add(dayKeys[i]);
+                }
+                customRepeatDays = selected.isEmpty() ? null : String.join(",", selected);
+            } else {
+                customRepeatDays = null;
+            }
+
+            // End condition
+            Toggle endToggle = endGroup.getSelectedToggle();
+            if (endToggle == onDateRadio) {
+                customEndType = "ON_DATE";
+                customEndDate = endDatePicker.getValue();
+                customMaxOccurrences = 0;
+            } else if (endToggle == afterRadio) {
+                customEndType = "AFTER";
+                customEndDate = null;
+                customMaxOccurrences = occurrencesSpinner.getValue();
+            } else {
+                customEndType = "NEVER";
+                customEndDate = null;
+                customMaxOccurrences = 0;
+            }
+
+            dialogStage.close();
+        });
+
+        Button cancelBtn = new Button("Cancel");
+        cancelBtn.getStyleClass().add("icon-btn");
+        cancelBtn.setOnAction(e -> {
+            recurrenceCombo.getSelectionModel().select(previousRecurrenceSelection);
+            dialogStage.close();
+        });
+
+        HBox buttonRow = new HBox(12, saveBtn, cancelBtn);
+        buttonRow.setAlignment(Pos.CENTER_RIGHT);
+
+        Separator sep = new Separator();
+        sep.setStyle("-fx-background-color: rgba(255,255,255,0.1);");
+
+        card.getChildren().addAll(titleLabel, repeatLabel, repeatRow, weekdaySection, endLabel, endSection, sep,
+                buttonRow);
+
+        // -- Overlay --
+        StackPane overlay = new StackPane(card);
+        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.5);");
+        overlay.setAlignment(Pos.CENTER);
+        overlay.setOnMouseClicked(event -> {
+            if (event.getTarget() == overlay) {
+                recurrenceCombo.getSelectionModel().select(previousRecurrenceSelection);
+                dialogStage.close();
+            }
+        });
+
+        Scene scene = new Scene(overlay, 450, 420);
+        scene.setFill(Color.TRANSPARENT);
+        scene.getStylesheets().add(getClass().getResource("styles.css").toExternalForm());
+        dialogStage.setScene(scene);
+        dialogStage.showAndWait();
     }
 
     @FXML

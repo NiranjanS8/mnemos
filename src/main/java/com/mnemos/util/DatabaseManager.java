@@ -126,9 +126,15 @@ public class DatabaseManager {
                 stmt.execute("ALTER TABLE tasks ADD COLUMN reminder_date TEXT");
                 logger.info("Added recurrence and reminder columns to tasks table");
             } catch (SQLException e) {
-                // Columns likely already exist or partial failure (SQLite doesn't support IF
-                // EXISTS for columns)
-                // We rely on catch-ignore for robustness in this simple migration setup
+            }
+
+            // Migration: Add custom recurrence columns
+            try {
+                stmt.execute("ALTER TABLE tasks ADD COLUMN recurrence_unit TEXT");
+                stmt.execute("ALTER TABLE tasks ADD COLUMN recurrence_days TEXT");
+                stmt.execute("ALTER TABLE tasks ADD COLUMN recurrence_max_occurrences INTEGER DEFAULT 0");
+                logger.info("Added custom recurrence columns to tasks table");
+            } catch (SQLException e) {
             }
 
             String taskDependenciesTable = """

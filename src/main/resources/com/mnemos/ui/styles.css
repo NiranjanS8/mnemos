@@ -911,3 +911,95 @@
 .spinner .decrement-arrow-button .decrement-arrow {
     -fx-background-color: #e0e0e0;
 }
+
+/* ===== Custom Repeat Dialog ===== */
+.custom-repeat-dialog {
+    -fx-background-color: #1e1e2e;
+    -fx-background-radius: 16;
+    -fx-border-color: rgba(108, 140, 255, 0.3);
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 25, 0, 0, 8);
+}
+
+.dialog-section-label {
+    -fx-text-fill: #888;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.weekday-toggle {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-text-fill: #aaa;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-min-width: 38;
+    -fx-min-height: 38;
+    -fx-max-width: 38;
+    -fx-max-height: 38;
+    -fx-background-radius: 19;
+    -fx-border-radius: 19;
+    -fx-border-color: rgba(255, 255, 255, 0.15);
+    -fx-border-width: 1;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.weekday-toggle:hover {
+    -fx-background-color: rgba(108, 140, 255, 0.2);
+    -fx-border-color: rgba(108, 140, 255, 0.4);
+    -fx-text-fill: #ccc;
+}
+
+.weekday-toggle:selected {
+    -fx-background-color: #6c8cff;
+    -fx-text-fill: white;
+    -fx-border-color: #6c8cff;
+}
+
+.custom-repeat-spinner {
+    -fx-background-color: transparent;
+}
+
+.custom-repeat-spinner .text-field {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-text-fill: #e0e0e0;
+    -fx-background-radius: 5;
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-radius: 5;
+    -fx-border-width: 1;
+    -fx-padding: 5 8;
+}
+
+.custom-repeat-spinner .increment-arrow-button,
+.custom-repeat-spinner .decrement-arrow-button {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-background-radius: 3;
+}
+
+.custom-repeat-spinner .increment-arrow-button:hover,
+.custom-repeat-spinner .decrement-arrow-button:hover {
+    -fx-background-color: rgba(108, 140, 255, 0.3);
+}
+
+.custom-repeat-spinner .increment-arrow-button .increment-arrow,
+.custom-repeat-spinner .decrement-arrow-button .decrement-arrow {
+    -fx-background-color: #e0e0e0;
+}
+
+/* Radio buttons in dialog */
+.custom-repeat-dialog .radio-button .radio {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+.custom-repeat-dialog .radio-button:selected .radio {
+    -fx-background-color: rgba(108, 140, 255, 0.3);
+    -fx-border-color: #6c8cff;
+}
+
+.custom-repeat-dialog .radio-button:selected .radio .dot {
+    -fx-background-color: #6c8cff;
+}

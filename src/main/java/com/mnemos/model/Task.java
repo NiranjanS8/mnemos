@@ -16,6 +16,10 @@ public class Task {
         NONE, DAILY, WEEKLY, CUSTOM
     }
 
+    public enum RecurrenceUnit {
+        DAYS, WEEKS, MONTHS
+    }
+
     private Long id;
     private String title;
     private Priority priority;
@@ -23,11 +27,13 @@ public class Task {
     private Status status;
     private int pomodoroCount;
 
-    // New fields
     private RecurrenceType recurrenceType = RecurrenceType.NONE;
-    private int recurrenceInterval = 0; // e.g. every 2 days
+    private int recurrenceInterval = 0;
     private LocalDate recurrenceEndDate;
-    private String reminderDate; // Stored as ISO string for simplicity
+    private String reminderDate;
+    private RecurrenceUnit recurrenceUnit = RecurrenceUnit.DAYS;
+    private String recurrenceDays; // e.g. "MON,WED,FRI" for weekly
+    private int recurrenceMaxOccurrences = 0; // 0 = unlimited
 
     public Task(Long id, String title, Priority priority, LocalDate dueDate, Status status, int pomodoroCount) {
         this.id = id;
@@ -124,5 +130,29 @@ public class Task {
 
     public void setReminderDate(String reminderDate) {
         this.reminderDate = reminderDate;
+    }
+
+    public RecurrenceUnit getRecurrenceUnit() {
+        return recurrenceUnit;
+    }
+
+    public void setRecurrenceUnit(RecurrenceUnit recurrenceUnit) {
+        this.recurrenceUnit = recurrenceUnit;
+    }
+
+    public String getRecurrenceDays() {
+        return recurrenceDays;
+    }
+
+    public void setRecurrenceDays(String recurrenceDays) {
+        this.recurrenceDays = recurrenceDays;
+    }
+
+    public int getRecurrenceMaxOccurrences() {
+        return recurrenceMaxOccurrences;
+    }
+
+    public void setRecurrenceMaxOccurrences(int recurrenceMaxOccurrences) {
+        this.recurrenceMaxOccurrences = recurrenceMaxOccurrences;
     }
 }
