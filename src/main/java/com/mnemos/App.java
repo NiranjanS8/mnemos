@@ -51,19 +51,11 @@ public class App extends Application {
         try {
             com.mnemos.util.DatabaseManager.initialize();
 
-            // Check authentication
             AuthService authService = new AuthService();
             if (!authenticateUser(authService)) {
-                // User failed authentication or cancelled - exit app
                 Platform.exit();
                 return;
             }
-
-            // Auto-delete service disabled - use manual delete button instead
-            /*
-             * taskCleanupService = new TaskCleanupService();
-             * taskCleanupService.start();
-             */
         } catch (Exception e) {
             com.mnemos.util.AlertUtils.showException("Database Error", e);
         }
@@ -78,72 +70,42 @@ public class App extends Application {
             scene.getStylesheets().add(styles.toExternalForm());
         }
 
-        // Drag logic with state tracking
         root.setOnMousePressed(event -> {
             xOffset = event.getSceneX();
             yOffset = event.getSceneY();
-            isDragging = false; // Reset on press
+            isDragging = false;
         });
         root.setOnMouseDragged(event -> {
             stage.setX(event.getScreenX() - xOffset);
             stage.setY(event.getScreenY() - yOffset);
-            isDragging = true; // Set dragging flag
+            isDragging = true;
         });
         root.setOnMouseReleased(event -> {
-            // Reset drag flag after a short delay
             javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(
                     javafx.util.Duration.millis(200));
             pause.setOnFinished(e -> isDragging = false);
             pause.play();
         });
 
-        // Use TRANSPARENT for completely frameless with rounded corners support
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.setScene(scene);
 
-        // Setup global Ctrl+Space hotkey for command palette
         scene.getAccelerators().put(
                 new KeyCodeCombination(KeyCode.SPACE, KeyCombination.CONTROL_DOWN),
                 this::showCommandPalette);
 
-        // Auto-hide on focus loss - DISABLED due to interference with drag-and-drop
-        // TODO: Implement smarter detection that doesn't interfere with file drops
-        /*
-         * stage.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-         * if (wasFocused && !isNowFocused && !isDragging) {
-         * // Longer delay to allow for drag-and-drop operations from external apps
-         * javafx.animation.PauseTransition pause = new
-         * javafx.animation.PauseTransition(
-         * javafx.util.Duration.millis(1000));
-         * pause.setOnFinished(e -> {
-         * if (!stage.isFocused() && !isDragging) {
-         * hideWindow();
-         * }
-         * });
-         * pause.play();
-         * }
-         * });
-         */
-
-        // Make window resizable and save/restore bounds
         stage.setResizable(true);
         loadWindowBounds(stage);
 
-        // Don't exit when window is closed, just hide it
         stage.setOnCloseRequest(event -> {
             event.consume();
             saveWindowBounds(stage);
             hideWindow();
         });
 
-        // Setup system tray
         Platform.setImplicitExit(false);
         setupSystemTray();
-
-        // Initialize command palette commands
         initializeCommands();
-
-        // Show window on start after successful login
         showWindow();
     }
 
@@ -160,7 +122,6 @@ public class App extends Application {
             stage.setWidth(width);
             stage.setHeight(height);
         } catch (Exception e) {
-            // Use defaults if loading fails
             stage.setWidth(500);
             stage.setHeight(700);
         }
@@ -180,33 +141,22 @@ public class App extends Application {
     }
 
     private void setupSystemTray() {
-        System.out.println("Setting up system tray...");
-
         if (!SystemTray.isSupported()) {
-            System.err.println("SystemTray is not supported on this platform!");
-            // Fallback: show window immediately
             Platform.runLater(this::showWindow);
             return;
         }
 
         try {
-            System.out.println("Loading tray icon image...");
-            // Load tray icon
             BufferedImage trayIconImage = ImageIO.read(
                     App.class.getResourceAsStream("/com/mnemos/ui/tray-icon.png"));
 
             if (trayIconImage == null) {
-                System.err.println("Failed to load tray icon image!");
                 Platform.runLater(this::showWindow);
                 return;
             }
 
-            System.out.println("Tray icon image loaded: " + trayIconImage.getWidth() + "x" + trayIconImage.getHeight());
-
             SystemTray tray = SystemTray.getSystemTray();
-            System.out.println("SystemTray obtained");
 
-            // Create popup menu
             PopupMenu popup = new PopupMenu();
 
             MenuItem showItem = new MenuItem("Show Mnemos");
@@ -222,21 +172,20 @@ public class App extends Application {
             popup.addSeparator();
             popup.add(exitItem);
 
-            // Create tray icon
             trayIcon = new TrayIcon(trayIconImage, "Mnemos", popup);
             trayIcon.setImageAutoSize(true);
-
-            // Single click to toggle window
-            trayIcon.addActionListener(e -> Platform.runLater(this::toggleWindow));
-
+            trayIcon.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent e) {
+                    if (e.getButton() == java.awt.event.MouseEvent.BUTTON1) {
+                        Platform.runLater(() -> toggleWindow());
+                    }
+                }
+            });
             tray.add(trayIcon);
-            System.out.println("Tray icon added successfully! Look for it in your system tray (notification area).");
-            System.out.println("Click the tray icon to show the window.");
 
         } catch (Exception e) {
-            System.err.println("Error setting up system tray:");
-            e.printStackTrace();
-            // Fallback: show window
+            logger.error("Error setting up system tray", e);
             Platform.runLater(this::showWindow);
         }
     }
@@ -266,65 +215,18 @@ public class App extends Application {
     }
 
     private void initializeCommands() {
-        commands.add(new CommandItem(
-                "New Note",
-                "Create a new note",
-                "Actions",
-                "📝",
-                () -> {
-                    // TODO: Implement new note creation
-                    System.out.println("Creating new note...");
-                }));
-
-        commands.add(new CommandItem(
-                "New Task",
-                "Create a new task",
-                "Actions",
-                "✓",
-                () -> {
-                    // TODO: Implement new task creation
-                    System.out.println("Creating new task...");
-                }));
-
-        commands.add(new CommandItem(
-                "Add File",
-                "Add a file reference",
-                "Actions",
-                "📎",
-                () -> {
-                    // TODO: Implement file picker
-                    System.out.println("Adding file...");
-                }));
-
-        commands.add(new CommandItem(
-                "Go to Notes",
-                "Navigate to Notes view",
-                "Navigation",
-                "📄",
-                () -> {
-                    // TODO: Switch to notes view
-                    System.out.println("Navigating to Notes...");
-                }));
-
-        commands.add(new CommandItem(
-                "Go to Tasks",
-                "Navigate to Tasks view",
-                "Navigation",
-                "✓",
-                () -> {
-                    // TODO: Switch to tasks view
-                    System.out.println("Navigating to Tasks...");
-                }));
-
-        commands.add(new CommandItem(
-                "Go to Files",
-                "Navigate to Files view",
-                "Navigation",
-                "📁",
-                () -> {
-                    // TODO: Switch to files view
-                    System.out.println("Navigating to Files...");
-                }));
+        commands.add(new CommandItem("New Note", "Create a new note", "Actions", "📝", () -> {
+        }));
+        commands.add(new CommandItem("New Task", "Create a new task", "Actions", "✓", () -> {
+        }));
+        commands.add(new CommandItem("Add File", "Add a file reference", "Actions", "📎", () -> {
+        }));
+        commands.add(new CommandItem("Go to Notes", "Navigate to Notes view", "Navigation", "📄", () -> {
+        }));
+        commands.add(new CommandItem("Go to Tasks", "Navigate to Tasks view", "Navigation", "✓", () -> {
+        }));
+        commands.add(new CommandItem("Go to Files", "Navigate to Files view", "Navigation", "📁", () -> {
+        }));
     }
 
     private void showCommandPalette() {
@@ -361,18 +263,11 @@ public class App extends Application {
         }
     }
 
-    /**
-     * Authenticate user with password protection
-     * 
-     * @return true if authentication successful, false if cancelled or failed
-     */
     private boolean authenticateUser(AuthService authService) {
         try {
             if (!authService.isPasswordSet()) {
-                // First time setup - show setup dialog
                 return showSetupPasswordDialog();
             } else {
-                // Show login dialog
                 return showLoginDialog();
             }
         } catch (Exception e) {
@@ -381,9 +276,6 @@ public class App extends Application {
         }
     }
 
-    /**
-     * Show setup password dialog for first-time users
-     */
     private boolean showSetupPasswordDialog() {
         try {
             FXMLLoader loader = new FXMLLoader(App.class.getResource("/com/mnemos/ui/SetupPasswordDialog.fxml"));
@@ -409,9 +301,6 @@ public class App extends Application {
         }
     }
 
-    /**
-     * Show login dialog
-     */
     private boolean showLoginDialog() {
         try {
             FXMLLoader loader = new FXMLLoader(App.class.getResource("/com/mnemos/ui/LoginDialog.fxml"));

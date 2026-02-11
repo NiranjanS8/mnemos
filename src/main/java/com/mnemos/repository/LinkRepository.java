@@ -51,9 +51,6 @@ public class LinkRepository {
         }
     }
 
-    /**
-     * Get all links where the given item is either source or target
-     */
     public List<Link> getLinksForItem(ItemType type, Long id) {
         List<Link> links = new ArrayList<>();
         String sql = """
@@ -95,7 +92,6 @@ public class LinkRepository {
             pstmt.setLong(2, sourceId);
             pstmt.setString(3, targetType.name());
             pstmt.setLong(4, targetId);
-            // Check reverse direction too
             pstmt.setString(5, targetType.name());
             pstmt.setLong(6, targetId);
             pstmt.setString(7, sourceType.name());

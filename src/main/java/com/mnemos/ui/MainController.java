@@ -28,11 +28,17 @@ public class MainController {
     @FXML
     public void initialize() {
         try {
+            javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
+            clip.setArcWidth(32);
+            clip.setArcHeight(32);
+            clip.widthProperty().bind(rootPane.widthProperty());
+            clip.heightProperty().bind(rootPane.heightProperty());
+            rootPane.setClip(clip);
+
             javafx.fxml.FXMLLoader notesLoader = new javafx.fxml.FXMLLoader(
                     getClass().getResource("/com/mnemos/ui/NotesView.fxml"));
             javafx.scene.Node notesView = notesLoader.load();
 
-            // Anchor to edges
             AnchorPane.setTopAnchor(notesView, 0.0);
             AnchorPane.setBottomAnchor(notesView, 0.0);
             AnchorPane.setLeftAnchor(notesView, 0.0);
@@ -40,7 +46,6 @@ public class MainController {
 
             notesContainer.getChildren().add(notesView);
 
-            // Load Tasks
             javafx.fxml.FXMLLoader tasksLoader = new javafx.fxml.FXMLLoader(
                     getClass().getResource("/com/mnemos/ui/TasksView.fxml"));
             javafx.scene.Node tasksView = tasksLoader.load();
@@ -50,7 +55,6 @@ public class MainController {
             AnchorPane.setRightAnchor(tasksView, 0.0);
             tasksContainer.getChildren().add(tasksView);
 
-            // Load Files
             javafx.fxml.FXMLLoader filesLoader = new javafx.fxml.FXMLLoader(
                     getClass().getResource("/com/mnemos/ui/FilesView.fxml"));
             javafx.scene.Node filesView = filesLoader.load();
@@ -60,18 +64,15 @@ public class MainController {
             AnchorPane.setRightAnchor(filesView, 0.0);
             filesContainer.getChildren().add(filesView);
 
-            // Setup Header Tabs
             javafx.scene.control.ToggleGroup tabGroup = new javafx.scene.control.ToggleGroup();
             notesTabBtn.setToggleGroup(tabGroup);
             tasksTabBtn.setToggleGroup(tabGroup);
             filesTabBtn.setToggleGroup(tabGroup);
 
-            // Sync Buttons -> Tabs
             notesTabBtn.setOnAction(e -> mainTabPane.getSelectionModel().select(0));
             tasksTabBtn.setOnAction(e -> mainTabPane.getSelectionModel().select(1));
             filesTabBtn.setOnAction(e -> mainTabPane.getSelectionModel().select(2));
 
-            // Sync Tabs -> Buttons (in case something else changes tabs)
             mainTabPane.getSelectionModel().selectedIndexProperty().addListener((obs, oldVal, newVal) -> {
                 switch (newVal.intValue()) {
                     case 0:
@@ -86,7 +87,6 @@ public class MainController {
                 }
             });
 
-            // Ensure correct initial state
             tabGroup.selectToggle(notesTabBtn);
 
         } catch (Throwable e) {
@@ -98,8 +98,8 @@ public class MainController {
 
     @FXML
     private void handleClose() {
-        // For now, exit app. Later invalid minimize to tray
-        System.exit(0);
+        Stage stage = (Stage) rootPane.getScene().getWindow();
+        stage.fireEvent(new javafx.stage.WindowEvent(stage, javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST));
     }
 
     @FXML

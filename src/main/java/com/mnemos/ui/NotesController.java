@@ -74,7 +74,6 @@ public class NotesController {
             }
         });
 
-        // Setup linked items list
         linkedItemsListView.setItems(linkedItems);
         linkedItemsListView.setCellFactory(param -> new LinkedItemCell());
 

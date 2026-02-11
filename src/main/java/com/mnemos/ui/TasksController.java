@@ -54,10 +54,9 @@ public class TasksController {
     private final LinkService linkService = new LinkService();
     private final ObservableList<Task> tasks = FXCollections.observableArrayList();
 
-    // Track active Pomodoro dialog to prevent multiple instances
     private javafx.stage.Stage activePomodoroDialog = null;
     private final ObservableList<LinkedItem> linkedItems = FXCollections.observableArrayList();
-    private Status currentFilter = Status.PENDING; // Default to Pending
+    private Status currentFilter = Status.PENDING;
     private Task selectedTask = null;
 
     @FXML
@@ -71,16 +70,13 @@ public class TasksController {
         tasksListView.setItems(tasks);
         tasksListView.setCellFactory(param -> new TaskListCell());
 
-        // Setup linked items list
         linkedItemsListView.setItems(linkedItems);
         linkedItemsListView.setCellFactory(param -> new LinkedItemCell());
 
-        // Add placeholder for empty list
         Label placeholder = new Label("No linked items. Click '+ Add Link' to connect notes, files, or tasks.");
         placeholder.setStyle("-fx-text-fill: #666; -fx-font-size: 11px; -fx-font-style: italic; -fx-wrap-text: true;");
         linkedItemsListView.setPlaceholder(placeholder);
 
-        // Listen for task selection to show linked items
         tasksListView.getSelectionModel().selectedItemProperty().addListener((obs, oldTask, newTask) -> {
             selectedTask = newTask;
             updateLinkedItemsSection();
@@ -89,10 +85,9 @@ public class TasksController {
         loadTasks();
         updateStreakDisplay();
 
-        // Floating Label Logic
         taskTitleField.focusedProperty().addListener((obs, oldVal, newVal) -> updateFloatingLabel());
         taskTitleField.textProperty().addListener((obs, oldVal, newVal) -> updateFloatingLabel());
-        updateFloatingLabel(); // Initial state
+        updateFloatingLabel();
     }
 
     private void updateFloatingLabel() {
@@ -128,7 +123,6 @@ public class TasksController {
         } else {
             tasks.addAll(taskService.getTasksByStatus(currentFilter));
         }
-        // Sort by priority: HIGH -> MEDIUM -> LOW
         tasks.sort((t1, t2) -> {
             int p1 = getPriorityOrder(t1.getPriority());
             int p2 = getPriorityOrder(t2.getPriority());
@@ -150,10 +144,8 @@ public class TasksController {
         if (title != null && !title.isBlank()) {
             Task newTask = new Task(title, priorityCombo.getValue(), dueDatePicker.getValue());
 
-            // Set recurrence
             if (recurrenceCombo.getValue() != null) {
                 newTask.setRecurrenceType(recurrenceCombo.getValue());
-                // Default interval to 1 for now if recurrent
                 if (newTask.getRecurrenceType() != Task.RecurrenceType.NONE) {
                     newTask.setRecurrenceInterval(1);
                 }
@@ -193,7 +185,6 @@ public class TasksController {
         private final HBox content = new HBox(8);
 
         public TaskListCell() {
-            // Checkbox for status
             statusCheckBox.setCursor(javafx.scene.Cursor.HAND);
             statusCheckBox.setOnAction(e -> {
                 Task item = getItem();
@@ -205,15 +196,13 @@ public class TasksController {
                         item.setStatus(newStatus);
                         taskService.saveTask(item);
 
-                        // Update streak if task was just completed
                         if (oldStatus != Status.COMPLETED && newStatus == Status.COMPLETED) {
                             streakService.onTaskCompleted();
                             updateStreakDisplay();
                         }
                     } catch (IllegalStateException ex) {
-                        // Task blocked
-                        statusCheckBox.setSelected(false); // Revert check
-                        item.setStatus(oldStatus); // Revert model
+                        statusCheckBox.setSelected(false);
+                        item.setStatus(oldStatus);
 
                         javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
                                 javafx.scene.control.Alert.AlertType.WARNING);
@@ -240,7 +229,6 @@ public class TasksController {
             dueDateLabel.setStyle(
                     "-fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 3 6; -fx-background-radius: 4;");
 
-            // Timer button - text based for visibility
             timerButton.setText("Timer");
             timerButton.setMinWidth(50);
             timerButton.setMaxWidth(50);
@@ -255,7 +243,6 @@ public class TasksController {
                 }
             });
 
-            // Reminder button
             reminderButton.setText("🔔");
             reminderButton.setMinWidth(35);
             reminderButton.setMaxWidth(35);
@@ -264,17 +251,12 @@ public class TasksController {
             reminderButton.setStyle(
                     "-fx-background-color: rgba(255, 189, 46, 0.25); -fx-text-fill: #ffbd2e; -fx-cursor: hand; -fx-font-size: 12px; -fx-background-radius: 5;");
             reminderButton.setOnAction(e -> {
-                System.out.println("Reminder button clicked!");
                 Task item = getItem();
                 if (item != null) {
-                    System.out.println("Task found: " + item.getTitle());
                     TasksController.this.showReminderDropdown(item, reminderButton);
-                } else {
-                    System.out.println("No task item found!");
                 }
             });
 
-            // Delete button - text based for visibility
             deleteButton.setText("Delete");
             deleteButton.setMinWidth(60);
             deleteButton.setMaxWidth(60);
@@ -285,7 +267,6 @@ public class TasksController {
             deleteButton.setOnAction(e -> {
                 Task item = getItem();
                 if (item != null && item.getId() != null) {
-                    // Confirmation dialog
                     javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
                             javafx.scene.control.Alert.AlertType.CONFIRMATION);
                     alert.initOwner(getListView().getScene().getWindow());
@@ -319,12 +300,10 @@ public class TasksController {
                 setText(null);
                 setStyle("");
             } else {
-                // Update checkbox state
                 statusCheckBox.setSelected(item.getStatus() == Status.COMPLETED);
 
                 titleLabel.setText(item.getTitle());
 
-                // Set priority label with color
                 priorityLabel.setText(item.getPriority().toString());
                 String priorityColor = switch (item.getPriority()) {
                     case HIGH -> "-fx-background-color: rgba(255, 95, 86, 0.2); -fx-text-fill: #ff6b6b;";
@@ -335,7 +314,6 @@ public class TasksController {
                         "-fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 3 6; -fx-background-radius: 4;"
                                 + priorityColor);
 
-                // Display due date with color coding
                 if (item.getDueDate() != null) {
                     java.time.LocalDate today = java.time.LocalDate.now();
                     java.time.LocalDate dueDate = item.getDueDate();
@@ -345,7 +323,6 @@ public class TasksController {
                     String dateColor;
 
                     if (daysUntilDue < 0) {
-                        // Overdue
                         dateText = "⚠ " + Math.abs(daysUntilDue) + "d overdue";
                         dateColor = "-fx-background-color: rgba(255, 95, 86, 0.3); -fx-text-fill: #ff6b6b;";
                     } else if (daysUntilDue == 0) {

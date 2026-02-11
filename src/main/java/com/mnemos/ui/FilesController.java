@@ -47,11 +47,9 @@ public class FilesController {
         filesListView.setItems(files);
         filesListView.setCellFactory(param -> new FileListCell());
 
-        // Setup linked items list
         linkedItemsListView.setItems(linkedItems);
         linkedItemsListView.setCellFactory(param -> new LinkedItemCell());
 
-        // Listen for file selection
         filesListView.getSelectionModel().selectedItemProperty().addListener((obs, oldFile, newFile) -> {
             selectedFile = newFile;
             updateLinkedItemsSection();
@@ -94,7 +92,6 @@ public class FilesController {
             scene.getStylesheets().add(App.class.getResource("/com/mnemos/ui/styles.css").toExternalForm());
             dialog.setScene(scene);
 
-            // Center on parent
             dialog.setOnShown(event -> {
                 javafx.stage.Window owner = filesListView.getScene().getWindow();
                 dialog.setX(owner.getX() + (owner.getWidth() - dialog.getWidth()) / 2);

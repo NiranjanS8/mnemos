@@ -16,9 +16,6 @@ public class LinkService {
     private final NoteRepository noteRepository = new NoteRepository();
     private final FileRepository fileRepository = new FileRepository();
 
-    /**
-     * Create a link between two items
-     */
     public void linkItems(ItemType sourceType, Long sourceId, ItemType targetType, Long targetId) {
         if (!linkRepository.isLinked(sourceType, sourceId, targetType, targetId)) {
             Link link = new Link(sourceType, sourceId, targetType, targetId);
@@ -26,22 +23,15 @@ public class LinkService {
         }
     }
 
-    /**
-     * Remove a link
-     */
     public void unlinkItems(Long linkId) {
         linkRepository.delete(linkId);
     }
 
-    /**
-     * Get all linked items for a given item with their details
-     */
     public List<LinkedItem> getLinkedItems(ItemType type, Long id) {
         List<LinkedItem> linkedItems = new ArrayList<>();
         List<Link> links = linkRepository.getLinksForItem(type, id);
 
         for (Link link : links) {
-            // Determine the "other" item in the link
             ItemType otherType;
             Long otherId;
 
@@ -53,7 +43,6 @@ public class LinkService {
                 otherId = link.getSourceId();
             }
 
-            // Get item details
             LinkedItem item = getItemDetails(otherType, otherId, link.getId());
             if (item != null) {
                 linkedItems.add(item);
@@ -96,23 +85,14 @@ public class LinkService {
         };
     }
 
-    /**
-     * Get all tasks (for link picker)
-     */
     public List<Task> getAllTasks() {
         return taskRepository.findAll();
     }
 
-    /**
-     * Get all notes (for link picker)
-     */
     public List<Note> getAllNotes() {
         return noteRepository.findAll();
     }
 
-    /**
-     * Get all files (for link picker)
-     */
     public List<FileReference> getAllFiles() {
         return fileRepository.findAll();
     }
