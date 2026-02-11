@@ -690,6 +690,87 @@
     -fx-border-color: rgba(255, 255, 255, 0.2);
 }
 
+/* DatePicker Calendar Popup - Dark Theme */
+.date-picker-popup {
+    -fx-background-color: #1e1e2e;
+    -fx-border-color: rgba(108, 140, 255, 0.3);
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.date-picker-popup>.month-year-pane {
+    -fx-background-color: #252535;
+}
+
+.date-picker-popup>.month-year-pane>.spinner>.label {
+    -fx-text-fill: #e0e0e0;
+    -fx-font-weight: bold;
+}
+
+.date-picker-popup>.month-year-pane>.spinner>.button {
+    -fx-background-color: transparent;
+}
+
+.date-picker-popup>.month-year-pane>.spinner>.button>.left-arrow,
+.date-picker-popup>.month-year-pane>.spinner>.button>.right-arrow {
+    -fx-background-color: #ccc;
+}
+
+.date-picker-popup>.month-year-pane>.spinner>.button:hover {
+    -fx-background-color: rgba(108, 140, 255, 0.15);
+}
+
+.date-picker-popup>.month-year-pane>.spinner>.button:hover>.left-arrow,
+.date-picker-popup>.month-year-pane>.spinner>.button:hover>.right-arrow {
+    -fx-background-color: #6c8cff;
+}
+
+.date-picker-popup>*>.spinner>.button:hover {
+    -fx-background-color: transparent;
+}
+
+.date-picker-popup>.calendar-grid {
+    -fx-background-color: #1e1e2e;
+}
+
+.date-picker-popup>.calendar-grid>.date-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #d0d0d0;
+    -fx-font-size: 12px;
+}
+
+.date-picker-popup>.calendar-grid>.date-cell:hover {
+    -fx-background-color: rgba(108, 140, 255, 0.2);
+    -fx-background-radius: 4;
+}
+
+.date-picker-popup>.calendar-grid>.selected {
+    -fx-background-color: #5a7aff;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+}
+
+.date-picker-popup>.calendar-grid>.today {
+    -fx-background-color: rgba(108, 140, 255, 0.15);
+    -fx-background-radius: 4;
+    -fx-border-color: #6c8cff;
+    -fx-border-radius: 4;
+    -fx-border-width: 1;
+}
+
+.date-picker-popup>.calendar-grid>.secondary-text {
+    -fx-text-fill: #555;
+}
+
+.date-picker-popup>.calendar-grid>.day-name-cell {
+    -fx-text-fill: #888;
+    -fx-font-size: 11px;
+}
+
+.date-picker-popup>.calendar-grid>.week-number-cell {
+    -fx-text-fill: #555;
+}
+
 .add-task-btn {
     -fx-background-color: linear-gradient(to right, #5a7aff, #6c8cff);
     -fx-text-fill: white;
