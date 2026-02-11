@@ -48,6 +48,8 @@ public class TasksController {
     private VBox linkedItemsSection;
     @FXML
     private ListView<LinkedItem> linkedItemsListView;
+    @FXML
+    private javafx.scene.control.Button deleteAllDoneBtn;
 
     private final TaskService taskService = new TaskService();
     private final StreakService streakService = new StreakService();
@@ -165,13 +167,41 @@ public class TasksController {
     @FXML
     private void handleFilterPending() {
         currentFilter = Status.PENDING;
+        deleteAllDoneBtn.setVisible(false);
+        deleteAllDoneBtn.setManaged(false);
         loadTasks();
     }
 
     @FXML
     private void handleFilterCompleted() {
         currentFilter = Status.COMPLETED;
+        deleteAllDoneBtn.setVisible(true);
+        deleteAllDoneBtn.setManaged(true);
         loadTasks();
+    }
+
+    @FXML
+    private void handleDeleteAllDone() {
+        if (tasks.isEmpty())
+            return;
+
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.CONFIRMATION);
+        alert.initOwner(tasksListView.getScene().getWindow());
+        alert.getDialogPane().getStylesheets()
+                .add(getClass().getResource("/com/mnemos/ui/styles.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("dialog-pane");
+        alert.setTitle("Delete All Done Tasks");
+        alert.setHeaderText("Delete all completed tasks?");
+        alert.setContentText(
+                "This will permanently delete " + tasks.size() + " completed task(s). This action cannot be undone.");
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response == javafx.scene.control.ButtonType.OK) {
+                taskService.deleteAllCompletedTasks();
+                loadTasks();
+            }
+        });
     }
 
     private class TaskListCell extends ListCell<Task> {

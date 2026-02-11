@@ -29,26 +29,39 @@
             <!-- Add Task Card -->
             <javafx.scene.layout.StackPane styleClass="add-task-card">
                <children>
-                  <VBox spacing="15.0">
+                  <VBox spacing="12.0">
                      <children>
                         <Label text="New Task" styleClass="card-title" />
                         
                         <!-- Floating Label Input -->
                         <javafx.scene.layout.StackPane alignment="CENTER_LEFT">
                            <children>
-                              <TextField fx:id="taskTitleField" styleClass="floating-input" HBox.hgrow="ALWAYS" />
+                              <TextField fx:id="taskTitleField" styleClass="floating-input" />
                               <Label fx:id="taskTitleLabel" text="What needs to be done?" styleClass="floating-label" mouseTransparent="true"/>
                            </children>
                         </javafx.scene.layout.StackPane>
                         
-                        <!-- Controls Row -->
-                        <HBox spacing="10.0" alignment="CENTER_LEFT">
-                           <ComboBox fx:id="priorityCombo" promptText="Priority" styleClass="modern-combo-box" prefWidth="110"/>
-                           <DatePicker fx:id="dueDatePicker" promptText="Due Date" styleClass="modern-date-picker" prefWidth="130"/>
-                           <ComboBox fx:id="recurrenceCombo" promptText="Repeat" styleClass="modern-combo-box" prefWidth="110"/>
-                           
-                           <javafx.scene.layout.Region HBox.hgrow="ALWAYS" />
-                           
+                        <!-- Labeled Controls Row -->
+                        <HBox spacing="12.0" alignment="CENTER_LEFT">
+                           <!-- Priority -->
+                           <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                              <Label text="Priority" styleClass="input-label"/>
+                              <ComboBox fx:id="priorityCombo" styleClass="modern-combo-box" maxWidth="Infinity"/>
+                           </VBox>
+                           <!-- Due Date -->
+                           <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                              <Label text="Due Date" styleClass="input-label"/>
+                              <DatePicker fx:id="dueDatePicker" styleClass="modern-date-picker" maxWidth="Infinity"/>
+                           </VBox>
+                           <!-- Repeat -->
+                           <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                              <Label text="Repeat" styleClass="input-label"/>
+                              <ComboBox fx:id="recurrenceCombo" styleClass="modern-combo-box" maxWidth="Infinity"/>
+                           </VBox>
+                        </HBox>
+                        
+                        <!-- Add Button Row -->
+                        <HBox alignment="CENTER_RIGHT">
                            <Button onAction="#handleAddTask" text="Add Task" styleClass="add-task-btn" />
                         </HBox>
                      </children>
@@ -60,6 +73,8 @@
             <HBox spacing="10.0" alignment="CENTER">
                 <ToggleButton text="Pending" selected="true" onAction="#handleFilterPending" styleClass="icon-btn" toggleGroup="$filterGroup"/>
                 <ToggleButton text="Done" onAction="#handleFilterCompleted" styleClass="icon-btn" toggleGroup="$filterGroup"/>
+                <javafx.scene.layout.Region HBox.hgrow="ALWAYS" />
+                <Button fx:id="deleteAllDoneBtn" text="🗑 Delete All" onAction="#handleDeleteAllDone" styleClass="icon-btn-danger" visible="false" managed="false" />
             </HBox>
 
             <!-- Task List -->

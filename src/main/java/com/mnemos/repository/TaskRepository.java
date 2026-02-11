@@ -129,6 +129,17 @@ public class TaskRepository implements GenericRepository<Task, Long> {
         }
     }
 
+    public int deleteAllCompletedTasks() {
+        String sql = "DELETE FROM tasks WHERE status = 'COMPLETED'";
+        try (Connection conn = DatabaseManager.connect();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            return pstmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Error deleting all completed tasks", e);
+            return 0;
+        }
+    }
+
     // Dependency Methods
 
     public void addDependency(long predecessorId, long successorId) {

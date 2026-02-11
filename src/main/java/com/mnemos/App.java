@@ -87,6 +87,8 @@ public class App extends Application {
             pause.play();
         });
 
+        stage.getIcons().add(new javafx.scene.image.Image(
+                App.class.getResourceAsStream("/com/mnemos/ui/tray-icon.png")));
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.setScene(scene);
 
@@ -283,6 +285,8 @@ public class App extends Application {
             SetupPasswordController controller = loader.getController();
 
             Stage dialog = new Stage();
+            dialog.getIcons().add(new javafx.scene.image.Image(
+                    App.class.getResourceAsStream("/com/mnemos/ui/tray-icon.png")));
             dialog.initModality(Modality.APPLICATION_MODAL);
             dialog.setTitle("Setup Password");
             dialog.initStyle(StageStyle.TRANSPARENT);
@@ -308,6 +312,8 @@ public class App extends Application {
             LoginController controller = loader.getController();
 
             Stage dialog = new Stage();
+            dialog.getIcons().add(new javafx.scene.image.Image(
+                    App.class.getResourceAsStream("/com/mnemos/ui/tray-icon.png")));
             dialog.initModality(Modality.APPLICATION_MODAL);
             dialog.setTitle("Login");
             dialog.initStyle(StageStyle.TRANSPARENT);

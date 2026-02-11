@@ -47,6 +47,10 @@ public class TaskService {
         repository.deleteById(id);
     }
 
+    public int deleteAllCompletedTasks() {
+        return repository.deleteAllCompletedTasks();
+    }
+
     // Dependency Management
     public void addDependency(long predecessorId, long successorId) {
         if (predecessorId == successorId)
